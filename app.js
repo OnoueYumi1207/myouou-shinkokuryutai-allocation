@@ -265,7 +265,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   const range = ranges[hallId];
 
   node.querySelector(".hall-name").textContent = hallName;
-  node.querySelector(".manager-name").textContent = `責任者: ${managerName}`;
+  node.querySelector(".manager-name").textContent = `担当者: ${managerName}`;
   node.querySelector(".range").textContent = range.count ? `${range.start}〜${range.end}` : "—";
   node.querySelector(".card-stats").innerHTML = [
     ["合計", activeRows.length],
