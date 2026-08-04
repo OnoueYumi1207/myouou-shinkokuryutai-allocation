@@ -13,6 +13,7 @@
       <h1>神国龍体之確証割り振り</h1>
     </div>
     <div class="header-actions">
+      <button id="listButton" class="button secondary" type="button">一覧</button>
       <button id="printButton" class="button secondary" type="button">印刷</button>
       <button id="pdfButton" class="button primary" type="button">PDF保存</button>
     </div>
@@ -65,6 +66,21 @@
         <p id="ceremonyMeta"></p>
       </div>
       <div class="status-pill" id="snapshotStatus">下書き</div>
+    </section>
+
+    <section id="listPanel" class="list-panel" hidden aria-label="伝道会別一覧">
+      <div class="list-toolbar">
+        <label>
+          伝道会
+          <select id="listHallSelect"></select>
+        </label>
+        <div class="list-mode" aria-label="表示方法">
+          <button id="singleListButton" class="button secondary is-selected" type="button">この護摩供</button>
+          <button id="historyListButton" class="button secondary" type="button">履歴</button>
+        </div>
+        <button id="closeListButton" class="button secondary" type="button">閉じる</button>
+      </div>
+      <div id="listContent"></div>
     </section>
 
     <section id="cards" class="cards" aria-label="伝道会一覧"></section>

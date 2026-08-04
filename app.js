@@ -80,6 +80,8 @@ const state = loadState();
 let currentHall = null;
 let openHallId = null;
 let detailFilters = {};
+let listHallId = "yamanashi";
+let listMode = "single";
 
 function loadState() {
   const saved = localStorage.getItem(storeKey);
@@ -169,7 +171,33 @@ function setup() {
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
+  const listHallSelect = document.querySelector("#listHallSelect");
+  HALLS.forEach(([id, name]) => listHallSelect.add(new Option(name, id)));
+  listHallSelect.value = listHallId;
+  listHallSelect.addEventListener("change", () => {
+    listHallId = listHallSelect.value;
+    renderList();
+  });
+  document.querySelector("#listButton").addEventListener("click", () => toggleListPanel());
+  document.querySelector("#closeListButton").addEventListener("click", () => toggleListPanel(false));
+  document.querySelector("#singleListButton").addEventListener("click", () => setListMode("single"));
+  document.querySelector("#historyListButton").addEventListener("click", () => setListMode("history"));
   render();
+}
+
+function toggleListPanel(force) {
+  const panel = document.querySelector("#listPanel");
+  const show = typeof force === "boolean" ? force : panel.hidden;
+  panel.hidden = !show;
+  document.querySelector("#cards").hidden = show;
+  if (show) renderList();
+}
+
+function setListMode(mode) {
+  listMode = mode;
+  document.querySelector("#singleListButton").classList.toggle("is-selected", mode === "single");
+  document.querySelector("#historyListButton").classList.toggle("is-selected", mode === "history");
+  renderList();
 }
 
 function printCurrentView() {
@@ -260,6 +288,76 @@ function numberForRow(hallId, row, activeIndex, ranges) {
   return ranges[hallId].start + activeIndex;
 }
 
+function numberForName(ceremonyId, hallId, type, name) {
+  const selected = state.ceremonies[ceremonyId];
+  const hall = selected.halls[hallId];
+  const names = hall[type];
+  const index = names.indexOf(name);
+  if (index < 0) return "";
+  const key = `${type}:${index}:${name}`;
+  if (hall.mode === "manual" && hall.manualNumbers[key]) return hall.manualNumbers[key];
+  const previousCount = HALLS.slice(0, HALLS.findIndex(([id]) => id === hallId))
+    .reduce((total, [id]) => total + selected.halls[id].ritsumei.length + selected.halls[id].kuyo.length, 0);
+  return previousCount + (type === "ritsumei" ? index : hall.ritsumei.length + index) + 1;
+}
+
+function deliveryForName(ceremonyId, hallId, type, name) {
+  const hall = state.ceremonies[ceremonyId].halls[hallId];
+  const index = hall[type].indexOf(name);
+  return index < 0 ? false : Boolean(hall.delivered[`${type}:${index}:${name}`]);
+}
+
+function listRows(hallId, ceremonyIds) {
+  const names = [];
+  const seen = new Set();
+  const preferred = ceremony().halls[hallId];
+  [preferred.ritsumei, preferred.kuyo].flat().forEach((name) => {
+    if (!seen.has(name)) { seen.add(name); names.push(name); }
+  });
+  ceremonyIds.forEach((id) => {
+    const hall = state.ceremonies[id].halls[hallId];
+    [hall.ritsumei, hall.kuyo].flat().forEach((name) => {
+      if (!seen.has(name)) { seen.add(name); names.push(name); }
+    });
+  });
+  return names;
+}
+
+function renderList() {
+  const content = document.querySelector("#listContent");
+  if (!content) return;
+  const ids = listMode === "single" ? [state.currentCeremony] : CEREMONIES.map(([id]) => id);
+  const rows = listRows(listHallId, ids);
+  const hallName = HALLS.find(([id]) => id === listHallId)[1];
+  const columns = ids.map((id) => state.ceremonies[id]);
+  content.innerHTML = `
+    <div class="list-heading">
+      <h2>${escapeHtml(hallName)}</h2>
+      <span>${listMode === "single" ? escapeHtml(ceremony().name) : "第14回泉珠収天護摩供から最新まで"}</span>
+    </div>
+    <div class="list-scroll">
+      <table class="participant-list">
+        <thead><tr><th>順</th><th>氏名</th>${columns.map((item) => `<th>${escapeHtml(shortCeremonyName(item.name))}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map((name, index) => `<tr><td>${index + 1}</td><th scope="row">${escapeHtml(name)}</th>${columns.map((item) => listCell(item, name)).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function listCell(item, name) {
+  const hall = item.halls[listHallId];
+  if (!hall.updatedAt) return '<td class="list-cell unavailable">—</td>';
+  const type = hall.ritsumei.includes(name) ? "ritsumei" : hall.kuyo.includes(name) ? "kuyo" : "";
+  if (!type) return '<td class="list-cell absent">不参加</td>';
+  const number = numberForName(item.id, listHallId, type, name);
+  const delivered = deliveryForName(item.id, listHallId, type, name);
+  return `<td class="list-cell ${type}"><strong>${escapeHtml(String(number))}</strong><span>${delivered ? "✓" : ""}</span></td>`;
+}
+
+function shortCeremonyName(name) {
+  return name.replace(/^第\d+回/, "").replace(/護摩供$/, "").replace(/大環天$/, "");
+}
+
 function render() {
   const c = ceremony();
   const ranges = allocation();
@@ -289,6 +387,7 @@ function render() {
   HALLS.forEach(([hallId, hallName, managerName]) => {
     cards.appendChild(renderHallCard(hallId, hallName, managerName, ranges));
   });
+  if (!document.querySelector("#listPanel").hidden) renderList();
 }
 
 function renderHallCard(hallId, hallName, managerName, ranges) {

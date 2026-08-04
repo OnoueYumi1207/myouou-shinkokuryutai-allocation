@@ -208,6 +208,85 @@ textarea {
   gap: 10px;
 }
 
+.list-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 10px 24px rgba(151, 127, 192, .09);
+  overflow: hidden;
+}
+
+.list-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, #fff8fd, #f2fbff);
+}
+
+.list-toolbar label { width: min(190px, 42vw); }
+.list-mode { display: flex; gap: 6px; flex-wrap: wrap; }
+.list-toolbar > .button:last-child { margin-left: auto; }
+.button.is-selected { background: #f2e9ff; border-color: #cbb6eb; color: #5f4a88; }
+
+.list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px 8px;
+}
+
+.list-heading h2 { margin: 0; font-size: 22px; }
+.list-heading span { color: var(--muted); font-size: 13px; font-weight: 650; }
+.list-scroll { overflow: auto; max-height: calc(100vh - 250px); }
+
+.participant-list {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.participant-list th,
+.participant-list td {
+  min-width: 132px;
+  padding: 10px 8px;
+  border-top: 1px solid #e7e2ea;
+  border-right: 1px solid #e7e2ea;
+  text-align: center;
+}
+
+.participant-list thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-top: 0;
+  background: #f5f1f8;
+  font-size: 15px;
+}
+
+.participant-list th:first-child,
+.participant-list td:first-child { min-width: 48px; width: 48px; }
+.participant-list th:nth-child(2) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 180px;
+  text-align: left;
+  background: #fffdfd;
+  font-size: 18px;
+}
+.participant-list thead th:nth-child(2) { z-index: 3; background: #f5f1f8; }
+.list-cell { height: 68px; }
+.list-cell strong { display: block; color: #c94158; font-size: 25px; }
+.list-cell span { color: #638173; font-size: 18px; font-weight: 700; }
+.list-cell.ritsumei { background: color-mix(in srgb, var(--ritsumei) 66%, white); }
+.list-cell.kuyo { background: color-mix(in srgb, var(--kuyo) 66%, white); }
+.list-cell.absent { background: #f1f1f3; color: #86838b; font-size: 13px; font-weight: 650; }
+.list-cell.unavailable { background: #faf9fa; color: #b4b1b7; }
+
 .hall-card {
   border: 1px solid var(--line);
   border-radius: 8px;
