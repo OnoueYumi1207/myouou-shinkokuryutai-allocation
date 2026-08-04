@@ -75,7 +75,7 @@ const PRESET_NAMES = {
   },
 };
 
-const storeKey = "seimei-ryutai-allocation-v2";
+const storeKey = "myouou-shinkokuryutai-allocation-v1";
 const state = loadState();
 let currentHall = null;
 let openHallId = null;
