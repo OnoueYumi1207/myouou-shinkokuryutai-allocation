@@ -178,16 +178,19 @@ function setup() {
     listHallId = listHallSelect.value;
     renderList();
   });
-  document.querySelector("#listButton").addEventListener("click", () => toggleListPanel());
   document.querySelector("#closeListButton").addEventListener("click", () => toggleListPanel(false));
   document.querySelector("#singleListButton").addEventListener("click", () => setListMode("single"));
   document.querySelector("#historyListButton").addEventListener("click", () => setListMode("history"));
   render();
 }
 
-function toggleListPanel(force) {
+function toggleListPanel(force, hallId) {
   const panel = document.querySelector("#listPanel");
   const show = typeof force === "boolean" ? force : panel.hidden;
+  if (hallId) {
+    listHallId = hallId;
+    document.querySelector("#listHallSelect").value = hallId;
+  }
   panel.hidden = !show;
   document.querySelector("#cards").hidden = show;
   if (show) renderList();
@@ -427,6 +430,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
+  node.querySelector(".open-list").addEventListener("click", () => toggleListPanel(true, hallId));
   node.querySelector(".auto-number").addEventListener("click", () => {
     hall.mode = "auto";
     saveState();
