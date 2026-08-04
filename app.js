@@ -11,17 +11,15 @@ const HALLS = [
 ];
 
 const CEREMONIES = [
+  ["senju", "第14回泉珠収天護摩供", "2026-01-01"],
+  ["chiku", "第24回大元地空護摩供", "2026-01-01"],
+  ["kaikou", "第26回界光宇炎護摩供", "2026-01-01"],
+  ["myou", "第31回八大明王護摩供", "2026-01-01"],
+  ["jizou", "第30回地蔵尊王護摩供", "2026-01-01"],
+  ["ryuge", "第13回龍華大園護摩供（陽）", "2026-01-01"],
   ["segaki", "第30回施餓鬼供養護摩供", "2026-08-09"],
   ["chimei", "第17回治命普済護摩供", "2026-08-16"],
   ["gyokuji", "第24回玉璽大環天護摩供", "2026-08-30"],
-  ["hokuto", "北斗鎮圧護摩供", "2026-09-06"],
-  ["rokuson", "禄存宝珠護摩供", "2026-09-13"],
-  ["kokufu", "国父の日", "2026-09-20"],
-  ["chosei", "長生南十字星護摩供", "2026-09-27"],
-  ["myozen", "妙善閻魔天王護摩供", "2026-10-04"],
-  ["shuten", "収天大龍華祭", "2026-10-11"],
-  ["chinkon", "鎮魂四海龍王護摩供", "2026-10-18"],
-  ["senju", "泉珠収天護摩供", "2026-10-25"],
 ];
 
 const INITIAL_COUNTS = {
@@ -81,25 +79,40 @@ let currentHall = null;
 let openHallId = null;
 let detailFilters = {};
 let listHallId = "yamanashi";
-let listMode = "single";
+let listMode = "history";
+let historyImportInFlight = false;
 
 function loadState() {
   const saved = localStorage.getItem(storeKey);
-  if (saved) return JSON.parse(saved);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    CEREMONIES.forEach(([id, name, date]) => {
+      if (!parsed.ceremonies[id]) parsed.ceremonies[id] = makeCeremony(id, name, date);
+      parsed.ceremonies[id].name = name;
+    });
+    if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
+    return parsed;
+  }
   const ceremonies = Object.fromEntries(CEREMONIES.map(([id, name, date]) => [id, {
+    ...makeCeremony(id, name, date),
+  }]));
+  return { currentCeremony: "segaki", currentYear: "2026", ceremonies };
+}
+
+function makeCeremony(id, name, date) {
+  return {
     id,
     name,
     date,
     deadline: internalDeadline(date),
     snapshotAt: "",
     halls: makeInitialHalls(id),
-  }]));
-  return { currentCeremony: "segaki", currentYear: "2026", ceremonies };
+  };
 }
 
 function makeInitialHalls(ceremonyId) {
   return Object.fromEntries(HALLS.map(([id]) => {
-    const preset = PRESET_NAMES[id];
+    const preset = ceremonyId === "segaki" ? PRESET_NAMES[id] : null;
     return [id, {
       mode: "auto",
       ritsumei: preset?.ritsumei || [],
@@ -193,7 +206,14 @@ function toggleListPanel(force, hallId) {
   }
   panel.hidden = !show;
   document.querySelector("#cards").hidden = show;
-  if (show) renderList();
+  if (show) {
+    renderList();
+    if (listMode === "history" && historyNeedsImport()) importHistoryFromAdvanced();
+  }
+}
+
+function historyNeedsImport() {
+  return CEREMONIES.some(([id]) => !state.ceremonies[id].halls[listHallId].updatedAt);
 }
 
 function setListMode(mode) {
@@ -238,6 +258,43 @@ async function importFromAdvanced() {
     status.textContent = "取得しました。";
   } catch (error) {
     status.textContent = error.message;
+  }
+}
+
+async function importHistoryFromAdvanced() {
+  if (historyImportInFlight) return;
+  historyImportInFlight = true;
+  const status = document.querySelector("#advancedImportStatus");
+  status.textContent = "履歴を取得中...";
+  try {
+    const res = await fetch("/api/import-advanced", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year: state.currentYear, history: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "履歴を取得できませんでした。");
+
+    data.ceremonies.forEach((imported) => {
+      const current = state.ceremonies[imported.key];
+      if (!current) return;
+      current.date = imported.date;
+      current.deadline = `${imported.deadline}T12:00`;
+      HALLS.forEach(([hallId]) => {
+        const hall = imported.halls?.[hallId];
+        if (!hall) return;
+        current.halls[hallId].ritsumei = hall.ritsumei || [];
+        current.halls[hallId].kuyo = hall.kuyo || [];
+        current.halls[hallId].updatedAt = data.fetchedAt || new Date().toISOString();
+      });
+    });
+    saveState();
+    render();
+    status.textContent = `${data.ceremonies.length}件を取得しました。`;
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    historyImportInFlight = false;
   }
 }
 

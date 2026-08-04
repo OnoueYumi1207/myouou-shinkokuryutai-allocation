@@ -13,15 +13,27 @@ const HALL_KEYS = [
   ["yamanashi", "山梨"],
 ];
 
+const HISTORY_CEREMONIES = [
+  ["senju", "第14回泉珠収天護摩供"],
+  ["chiku", "第24回大元地空護摩供"],
+  ["kaikou", "第26回界光宇炎護摩供"],
+  ["myou", "第31回八大明王護摩供"],
+  ["jizou", "第30回地蔵尊王護摩供"],
+  ["ryuge", "第13回龍華大園護摩供（陽）"],
+  ["segaki", "第30回施餓鬼供養護摩供"],
+  ["chimei", "第17回治命普済護摩供"],
+  ["gyokuji", "第24回玉璽大環天護摩供"],
+];
+
 export async function onRequestPost({ request, env }) {
   try {
-    const { year, ceremonyName } = await request.json();
+    const { year, ceremonyName, history } = await request.json();
     const username = env.ADVANCED_USERNAME;
     const password = env.ADVANCED_PASSWORD;
     if (!username || !password) {
       return json({ error: "アドバンスドの接続情報がCloudflareに設定されていません。" }, 500);
     }
-    if (!year || !ceremonyName) {
+    if (!year || (!ceremonyName && !history)) {
       return json({ error: "対象年と護摩供名が必要です。" }, 400);
     }
 
@@ -56,6 +68,24 @@ export async function onRequestPost({ request, env }) {
 
     const gomaList = await postAdvancedJson(jar, { year: String(year) });
     if (!Array.isArray(gomaList)) return json({ error: "行事一覧を取得できませんでした。" }, 502);
+
+    if (history) {
+      const ceremonies = [];
+      for (const [key, name] of HISTORY_CEREMONIES) {
+        const item = findCeremony(gomaList, name);
+        if (!item) continue;
+        const reports = await postAdvancedJson(jar, { goma_year: String(year), goma_id: item.ID });
+        if (!Array.isArray(reports)) continue;
+        ceremonies.push({
+          key,
+          name: item.GOMA_NAME,
+          date: item.GOMA_DATE,
+          deadline: item.DUE_DATE,
+          halls: mapReports(reports),
+        });
+      }
+      return json({ ceremonies, fetchedAt: new Date().toISOString() });
+    }
 
     const ceremony = findCeremony(gomaList, ceremonyName);
     if (!ceremony) {
