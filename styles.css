@@ -640,4 +640,17 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
     width: 14px;
     min-height: 14px;
   }
+
+  body.printing-detail .summary-band,
+  body.printing-detail .ceremony-info,
+  body.printing-detail .hall-card:not(.is-open),
+  body.printing-detail .hall-card.is-open > .card-top,
+  body.printing-detail .hall-card.is-open > .card-stats {
+    display: none !important;
+  }
+
+  body.printing-detail .hall-card.is-open .card-detail {
+    break-before: auto;
+    page-break-before: auto;
+  }
 }

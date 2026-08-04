@@ -164,10 +164,16 @@ function setup() {
     render();
   });
 
-  document.querySelector("#printButton").addEventListener("click", () => window.print());
-  document.querySelector("#pdfButton").addEventListener("click", () => window.print());
+  document.querySelector("#printButton").addEventListener("click", printCurrentView);
+  document.querySelector("#pdfButton").addEventListener("click", printCurrentView);
+  window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
   render();
+}
+
+function printCurrentView() {
+  document.body.classList.toggle("printing-detail", Boolean(openHallId));
+  window.print();
 }
 
 function rowsForHall(hallId) {
