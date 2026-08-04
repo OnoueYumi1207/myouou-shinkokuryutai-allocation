@@ -23,6 +23,14 @@ const HISTORY_CEREMONIES = [
   ["segaki", "第30回施餓鬼供養護摩供"],
   ["chimei", "第17回治命普済護摩供"],
   ["gyokuji", "第24回玉璽大環天護摩供"],
+  ["hokuto", "北斗鎮圧護摩供"],
+  ["rokuson", "禄存宝珠護摩供"],
+  ["kokufu", "国父の日"],
+  ["chosei", "長生南十字星護摩供"],
+  ["myozen", "妙善閻魔天王護摩供"],
+  ["shuten", "収天大龍華祭"],
+  ["chinkon", "鎮魂四海龍王護摩供"],
+  ["senju15", "第15回泉珠収天護摩供"],
 ];
 
 export async function onRequestPost({ request, env }) {

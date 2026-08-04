@@ -11,15 +11,23 @@ const HALLS = [
 ];
 
 const CEREMONIES = [
-  ["senju", "第14回泉珠収天護摩供", "2026-01-01"],
-  ["chiku", "第24回大元地空護摩供", "2026-01-01"],
-  ["kaikou", "第26回界光宇炎護摩供", "2026-01-01"],
-  ["myou", "第31回八大明王護摩供", "2026-01-01"],
-  ["jizou", "第30回地蔵尊王護摩供", "2026-01-01"],
-  ["ryuge", "第13回龍華大圓護摩供（陽）", "2026-01-01"],
-  ["segaki", "第30回施餓鬼供養護摩供", "2026-08-09"],
-  ["chimei", "第17回治命普済護摩供", "2026-08-16"],
-  ["gyokuji", "第24回玉璽大環天護摩供", "2026-08-30"],
+  ["senju", "第14回泉珠収天護摩供", "2026-01-01", "14収天"],
+  ["chiku", "第24回大元地空護摩供", "2026-01-01", "地空"],
+  ["kaikou", "第26回界光宇炎護摩供", "2026-01-01", "界光"],
+  ["myou", "第31回八大明王護摩供", "2026-01-01", "明王"],
+  ["jizou", "第30回地蔵尊王護摩供", "2026-01-01", "地蔵"],
+  ["ryuge", "第13回龍華大圓護摩供（陽）", "2026-01-01", "龍華"],
+  ["segaki", "第30回施餓鬼供養護摩供", "2026-08-09", "施餓鬼"],
+  ["chimei", "第17回治命普済護摩供", "2026-08-16", "治命"],
+  ["gyokuji", "第24回玉璽大環天護摩供", "2026-08-30", "玉璽"],
+  ["hokuto", "北斗鎮圧護摩供", "2026-01-01", "北鎮"],
+  ["rokuson", "禄存宝珠護摩供", "2026-01-01", "宝珠"],
+  ["kokufu", "国父の日", "2026-01-01", "国父の日"],
+  ["chosei", "長生南十字星護摩供", "2026-01-01", "南十字"],
+  ["myozen", "妙善閻魔天王護摩供", "2026-01-01", "閻魔"],
+  ["shuten", "収天大龍華祭", "2026-01-01", "大龍華祭"],
+  ["chinkon", "鎮魂四海龍王護摩供", "2026-01-01", "鎮魂"],
+  ["senju15", "第15回泉珠収天護摩供", "2026-01-01", "15収天"],
 ];
 
 const INITIAL_COUNTS = {
@@ -97,7 +105,7 @@ function loadState() {
   const ceremonies = Object.fromEntries(CEREMONIES.map(([id, name, date]) => [id, {
     ...makeCeremony(id, name, date),
   }]));
-  return { currentCeremony: "segaki", currentYear: "2026", ceremonies };
+  return { currentCeremony: "segaki", currentYear: "2026", ceremonies, historyFetchedAt: "" };
 }
 
 function makeCeremony(id, name, date) {
@@ -189,7 +197,7 @@ function setup() {
 }
 
 function historyNeedsImport() {
-  return CEREMONIES.some(([id]) => !state.ceremonies[id].halls[listHallId].updatedAt);
+  return !state.historyFetchedAt;
 }
 
 function setListMode(mode) {
@@ -263,6 +271,7 @@ async function importHistoryFromAdvanced() {
         current.halls[hallId].updatedAt = data.fetchedAt || new Date().toISOString();
       });
     });
+    state.historyFetchedAt = data.fetchedAt || new Date().toISOString();
     saveState();
     render();
     status.textContent = `${data.ceremonies.length}件を取得しました。`;
@@ -382,8 +391,8 @@ function renderInlineList(card, hallId) {
     </div>
     <div class="list-scroll">
       <table class="participant-list">
-        <thead><tr><th>順</th><th>氏名</th>${columns.map((item) => `<th>${escapeHtml(shortCeremonyName(item.name))}</th>`).join("")}</tr></thead>
-        <tbody>${rows.map((name, index) => `<tr><td>${index + 1}</td><th scope="row">${escapeHtml(name)}</th>${columns.map((item) => listCell(item, name)).join("")}</tr>`).join("")}</tbody>
+        <thead><tr><th>順</th><th>氏名</th>${columns.map((item) => ceremonyHeader(item)).join("")}</tr></thead>
+        <tbody>${rows.map((name, index) => `<tr><td>${index + 1}</td><th scope="row">${escapeHtml(name)}</th>${columns.map((item, columnIndex) => listCell(item, name, columns[columnIndex - 1])).join("")}</tr>`).join("")}</tbody>
       </table>
     </div>
   `;
@@ -399,18 +408,24 @@ function hideInlineList(card) {
   inlineListHallId = null;
 }
 
-function listCell(item, name) {
+function ceremonyHeader(item) {
+  const hall = item.halls[listHallId];
+  const label = CEREMONIES.find(([id]) => id === item.id)?.[3] || item.name;
+  const ritsumei = hall?.updatedAt ? hall.ritsumei.length : "—";
+  const kuyo = hall?.updatedAt ? hall.kuyo.length : "—";
+  return `<th title="${escapeHtml(item.name)}"><span class="ceremony-head"><span>${escapeHtml(label)}</span><span class="ceremony-count"><b>${ritsumei}</b><b>${kuyo}</b></span></span></th>`;
+}
+
+function listCell(item, name, previousItem) {
   const hall = item.halls[listHallId];
   if (!hall.updatedAt) return '<td class="list-cell unavailable">—</td>';
   const type = hall.ritsumei.includes(name) ? "ritsumei" : hall.kuyo.includes(name) ? "kuyo" : "";
-  if (!type) return '<td class="list-cell absent">不参加</td>';
-  const number = numberForName(item.id, listHallId, type, name);
-  const delivered = deliveryForName(item.id, listHallId, type, name);
-  return `<td class="list-cell ${type}"><strong>${escapeHtml(String(number))}</strong><span>${delivered ? "✓" : ""}</span></td>`;
-}
-
-function shortCeremonyName(name) {
-  return name.replace(/^第\d+回/, "").replace(/護摩供$/, "").replace(/大環天$/, "");
+  if (!type) return '<td class="list-cell absent"><strong>−</strong></td>';
+  const previousHall = previousItem?.halls[listHallId];
+  const appearedBefore = previousHall?.updatedAt
+    && (previousHall.ritsumei.includes(name) || previousHall.kuyo.includes(name));
+  const isNew = Boolean(previousHall?.updatedAt) && !appearedBefore;
+  return `<td class="list-cell ${type}${isNew ? " new" : ""}"><strong>${isNew ? "新" : "✓"}</strong></td>`;
 }
 
 function render() {

@@ -269,12 +269,34 @@ textarea {
   font-size: 18px;
 }
 .participant-list thead th:nth-child(2) { z-index: 3; background: #f5f1f8; }
+.ceremony-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 116px;
+  white-space: nowrap;
+}
+
+.ceremony-count {
+  display: grid;
+  gap: 2px;
+  min-width: 24px;
+  padding-left: 8px;
+  border-left: 1px solid #d7cfdd;
+  color: #7d7895;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ceremony-count b { font-weight: 700; }
 .list-cell { height: 68px; }
-.list-cell strong { display: block; color: #c94158; font-size: 25px; }
-.list-cell span { color: #638173; font-size: 18px; font-weight: 700; }
+.list-cell strong { display: block; color: #478b82; font-size: 30px; line-height: 1; }
 .list-cell.ritsumei { background: color-mix(in srgb, var(--ritsumei) 66%, white); }
 .list-cell.kuyo { background: color-mix(in srgb, var(--kuyo) 66%, white); }
-.list-cell.absent { background: #f1f1f3; color: #86838b; font-size: 13px; font-weight: 650; }
+.list-cell.new strong { color: #d13e58; font-size: 31px; }
+.list-cell.absent { background: #f1f1f3; }
+.list-cell.absent strong { color: #89878d; font-size: 27px; }
 .list-cell.unavailable { background: #faf9fa; color: #b4b1b7; }
 
 .hall-card {
