@@ -173,7 +173,7 @@ function setup() {
 
 function printCurrentView() {
   document.body.classList.toggle("printing-detail", Boolean(openHallId));
-  window.print();
+  requestAnimationFrame(() => window.print());
 }
 
 function rowsForHall(hallId) {

@@ -586,7 +586,7 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   }
 
   .hall-card.is-open .card-detail {
-    display: block;
+    display: block !important;
     break-before: page;
     page-break-before: always;
     border-top: 0;
@@ -650,6 +650,7 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   }
 
   body.printing-detail .hall-card.is-open .card-detail {
+    display: block !important;
     break-before: auto;
     page-break-before: auto;
   }
