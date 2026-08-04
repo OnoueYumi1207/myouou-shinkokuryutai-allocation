@@ -1,6 +1,5 @@
 const LOGIN_URL = "https://tendo.net/advanced/login.php?url=/advanced/app/ritsumeigyo/index.php";
 const RES_URL = "https://tendo.net/advanced/app/ritsumeigyo/res.php";
-const ADVANCED_USERNAME = "shigurenoki";
 
 const HALL_KEYS = [
   ["oedo", "大江戸"],
@@ -17,9 +16,10 @@ const HALL_KEYS = [
 export async function onRequestPost({ request, env }) {
   try {
     const { year, ceremonyName } = await request.json();
+    const username = env.ADVANCED_USERNAME;
     const password = env.ADVANCED_PASSWORD;
-    if (!password) {
-      return json({ error: "アドバンスドのパスワードがCloudflareに設定されていません。" }, 500);
+    if (!username || !password) {
+      return json({ error: "アドバンスドの接続情報がCloudflareに設定されていません。" }, 500);
     }
     if (!year || !ceremonyName) {
       return json({ error: "対象年と護摩供名が必要です。" }, 400);
@@ -32,7 +32,7 @@ export async function onRequestPost({ request, env }) {
     if (!token) return json({ error: "ログイントークンを取得できませんでした。" }, 502);
 
     const form = new URLSearchParams();
-    form.set("ses_user", ADVANCED_USERNAME);
+    form.set("ses_user", username);
     form.set("ses_password", password);
     form.set("url", "/advanced/app/ritsumeigyo/index.php");
     form.set("token", token);
