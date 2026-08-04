@@ -179,21 +179,12 @@ function printCurrentView() {
 
 async function importFromAdvanced() {
   const status = document.querySelector("#advancedImportStatus");
-  const username = document.querySelector("#advancedUser").value.trim();
-  const password = document.querySelector("#advancedPassword").value;
-  if (!username || !password) {
-    status.textContent = "ログインIDとパスワードを入力してください。";
-    return;
-  }
-
   status.textContent = "取得中...";
   try {
     const res = await fetch("/api/import-advanced", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username,
-        password,
         year: state.currentYear,
         ceremonyName: ceremony().name,
       }),
