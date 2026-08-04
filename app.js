@@ -167,6 +167,7 @@ function setup() {
   document.querySelector("#printButton").addEventListener("click", printCurrentView);
   document.querySelector("#pdfButton").addEventListener("click", printCurrentView);
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
+  document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
   render();
 }
@@ -174,6 +175,48 @@ function setup() {
 function printCurrentView() {
   document.body.classList.toggle("printing-detail", Boolean(openHallId));
   requestAnimationFrame(() => window.print());
+}
+
+async function importFromAdvanced() {
+  const status = document.querySelector("#advancedImportStatus");
+  const username = document.querySelector("#advancedUser").value.trim();
+  const password = document.querySelector("#advancedPassword").value;
+  if (!username || !password) {
+    status.textContent = "ログインIDとパスワードを入力してください。";
+    return;
+  }
+
+  status.textContent = "取得中...";
+  try {
+    const res = await fetch("/api/import-advanced", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        year: state.currentYear,
+        ceremonyName: ceremony().name,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "取得できませんでした。");
+
+    const current = ceremony();
+    if (data.ceremony?.date) current.date = data.ceremony.date;
+    if (data.ceremony?.deadline) current.deadline = `${data.ceremony.deadline}T12:00`;
+    HALLS.forEach(([hallId]) => {
+      const imported = data.halls?.[hallId];
+      if (!imported) return;
+      current.halls[hallId].ritsumei = imported.ritsumei || [];
+      current.halls[hallId].kuyo = imported.kuyo || [];
+      current.halls[hallId].updatedAt = data.fetchedAt || new Date().toISOString();
+    });
+    saveState();
+    render();
+    status.textContent = "取得しました。";
+  } catch (error) {
+    status.textContent = error.message;
+  }
 }
 
 function rowsForHall(hallId) {

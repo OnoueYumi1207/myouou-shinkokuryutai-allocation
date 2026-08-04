@@ -72,6 +72,21 @@ main {
   padding: 14px 0;
 }
 
+.advanced-import {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(160px, 220px) auto minmax(180px, 1fr);
+  gap: 12px;
+  align-items: end;
+  padding: 0 0 14px;
+}
+
+.import-status {
+  align-self: center;
+  color: #8d78c8;
+  font-size: 13px;
+  font-weight: 650;
+}
+
 label {
   display: grid;
   gap: 5px;
@@ -439,6 +454,10 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   .header-actions .button { flex: 1; }
 
   .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .advanced-import {
     grid-template-columns: 1fr;
   }
 
