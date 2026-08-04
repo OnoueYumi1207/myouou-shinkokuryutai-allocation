@@ -275,13 +275,16 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   ].map(([label, value]) => `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
   const detail = node.querySelector(".card-detail");
+  detail.dataset.printTitle = `${hallName} ${range.count ? `${range.start}〜${range.end}` : "—"}`;
   if (openHallId === hallId) {
+    node.classList.add("is-open");
     detail.hidden = false;
     renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
   }
   node.querySelector(".card-top").addEventListener("click", () => {
     detail.hidden = !detail.hidden;
     openHallId = detail.hidden ? null : hallId;
+    node.classList.toggle("is-open", !detail.hidden);
     if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
