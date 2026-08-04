@@ -81,6 +81,7 @@ let detailFilters = {};
 let listHallId = "yamanashi";
 let listMode = "history";
 let historyImportInFlight = false;
+let inlineListHallId = null;
 
 function loadState() {
   const saved = localStorage.getItem(storeKey);
@@ -184,32 +185,7 @@ function setup() {
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
-  const listHallSelect = document.querySelector("#listHallSelect");
-  HALLS.forEach(([id, name]) => listHallSelect.add(new Option(name, id)));
-  listHallSelect.value = listHallId;
-  listHallSelect.addEventListener("change", () => {
-    listHallId = listHallSelect.value;
-    renderList();
-  });
-  document.querySelector("#closeListButton").addEventListener("click", () => toggleListPanel(false));
-  document.querySelector("#singleListButton").addEventListener("click", () => setListMode("single"));
-  document.querySelector("#historyListButton").addEventListener("click", () => setListMode("history"));
   render();
-}
-
-function toggleListPanel(force, hallId) {
-  const panel = document.querySelector("#listPanel");
-  const show = typeof force === "boolean" ? force : panel.hidden;
-  if (hallId) {
-    listHallId = hallId;
-    document.querySelector("#listHallSelect").value = hallId;
-  }
-  panel.hidden = !show;
-  document.querySelector("#cards").hidden = show;
-  if (show) {
-    renderList();
-    if (listMode === "history" && historyNeedsImport()) importHistoryFromAdvanced();
-  }
 }
 
 function historyNeedsImport() {
@@ -218,9 +194,8 @@ function historyNeedsImport() {
 
 function setListMode(mode) {
   listMode = mode;
-  document.querySelector("#singleListButton").classList.toggle("is-selected", mode === "single");
-  document.querySelector("#historyListButton").classList.toggle("is-selected", mode === "history");
-  renderList();
+  const card = document.querySelector(`.hall-card[data-hall-id="${inlineListHallId}"]`);
+  if (card) renderInlineList(card, inlineListHallId);
 }
 
 function printCurrentView() {
@@ -383,14 +358,24 @@ function listRows(hallId, ceremonyIds) {
   return names;
 }
 
-function renderList() {
-  const content = document.querySelector("#listContent");
-  if (!content) return;
+function renderInlineList(card, hallId) {
+  listHallId = hallId;
+  inlineListHallId = hallId;
+  const content = card.querySelector(".inline-list");
+  const people = card.querySelector(".people");
   const ids = listMode === "single" ? [state.currentCeremony] : CEREMONIES.map(([id]) => id);
   const rows = listRows(listHallId, ids);
   const hallName = HALLS.find(([id]) => id === listHallId)[1];
   const columns = ids.map((id) => state.ceremonies[id]);
+  people.hidden = true;
+  content.hidden = false;
   content.innerHTML = `
+    <div class="list-toolbar">
+      <div class="list-mode" aria-label="表示方法">
+        <button class="button secondary list-single ${listMode === "single" ? "is-selected" : ""}" type="button">この護摩供</button>
+        <button class="button secondary list-history ${listMode === "history" ? "is-selected" : ""}" type="button">履歴</button>
+      </div>
+    </div>
     <div class="list-heading">
       <h2>${escapeHtml(hallName)}</h2>
       <span>${listMode === "single" ? escapeHtml(ceremony().name) : "第14回泉珠収天護摩供から最新まで"}</span>
@@ -402,6 +387,16 @@ function renderList() {
       </table>
     </div>
   `;
+  content.querySelector(".list-single").addEventListener("click", () => setListMode("single"));
+  content.querySelector(".list-history").addEventListener("click", () => setListMode("history"));
+  card.querySelector(".open-list").textContent = "名簿";
+}
+
+function hideInlineList(card) {
+  card.querySelector(".inline-list").hidden = true;
+  card.querySelector(".people").hidden = false;
+  card.querySelector(".open-list").textContent = "一覧";
+  inlineListHallId = null;
 }
 
 function listCell(item, name) {
@@ -447,12 +442,12 @@ function render() {
   HALLS.forEach(([hallId, hallName, managerName]) => {
     cards.appendChild(renderHallCard(hallId, hallName, managerName, ranges));
   });
-  if (!document.querySelector("#listPanel").hidden) renderList();
 }
 
 function renderHallCard(hallId, hallName, managerName, ranges) {
   const template = document.querySelector("#cardTemplate");
   const node = template.content.firstElementChild.cloneNode(true);
+  node.dataset.hallId = hallId;
   const hall = ceremony().halls[hallId];
   const rows = rowsForHall(hallId);
   const activeRows = rows.filter((row) => row.active);
@@ -479,15 +474,24 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     node.classList.add("is-open");
     detail.hidden = false;
     renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
+    if (inlineListHallId === hallId) renderInlineList(node, hallId);
   }
   node.querySelector(".card-top").addEventListener("click", () => {
     detail.hidden = !detail.hidden;
     openHallId = detail.hidden ? null : hallId;
+    if (detail.hidden && inlineListHallId === hallId) inlineListHallId = null;
     node.classList.toggle("is-open", !detail.hidden);
     if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
-  node.querySelector(".open-list").addEventListener("click", () => toggleListPanel(true, hallId));
+  node.querySelector(".open-list").addEventListener("click", () => {
+    if (inlineListHallId === hallId) {
+      hideInlineList(node);
+      return;
+    }
+    renderInlineList(node, hallId);
+    if (listMode === "history" && historyNeedsImport()) importHistoryFromAdvanced();
+  });
   node.querySelector(".auto-number").addEventListener("click", () => {
     hall.mode = "auto";
     saveState();
@@ -503,6 +507,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   node.querySelector(".close-detail").addEventListener("click", () => {
     detail.hidden = true;
     openHallId = null;
+    inlineListHallId = null;
     node.classList.remove("is-open");
   });
 

@@ -67,21 +67,6 @@
       <div class="status-pill" id="snapshotStatus">下書き</div>
     </section>
 
-    <section id="listPanel" class="list-panel" hidden aria-label="伝道会別一覧">
-      <div class="list-toolbar">
-        <label>
-          伝道会
-          <select id="listHallSelect"></select>
-        </label>
-        <div class="list-mode" aria-label="表示方法">
-          <button id="singleListButton" class="button secondary" type="button">この護摩供</button>
-          <button id="historyListButton" class="button secondary is-selected" type="button">履歴</button>
-        </div>
-        <button id="closeListButton" class="button secondary" type="button">閉じる</button>
-      </div>
-      <div id="listContent"></div>
-    </section>
-
     <section id="cards" class="cards" aria-label="伝道会一覧"></section>
   </main>
 
@@ -130,6 +115,7 @@
           <button class="button secondary close-detail" type="button">閉じる</button>
         </div>
         <div class="people"></div>
+        <div class="inline-list" hidden></div>
       </div>
     </article>
   </template>

@@ -208,14 +208,6 @@ textarea {
   gap: 10px;
 }
 
-.list-panel {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .92);
-  box-shadow: 0 10px 24px rgba(151, 127, 192, .09);
-  overflow: hidden;
-}
-
 .list-toolbar {
   display: flex;
   align-items: end;
@@ -225,9 +217,7 @@ textarea {
   background: linear-gradient(90deg, #fff8fd, #f2fbff);
 }
 
-.list-toolbar label { width: min(190px, 42vw); }
 .list-mode { display: flex; gap: 6px; flex-wrap: wrap; }
-.list-toolbar > .button:last-child { margin-left: auto; }
 .button.is-selected { background: #f2e9ff; border-color: #cbb6eb; color: #5f4a88; }
 
 .list-heading {
