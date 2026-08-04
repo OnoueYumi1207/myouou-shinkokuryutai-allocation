@@ -306,6 +306,11 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   });
   node.querySelector(".show-undelivered").addEventListener("click", () => renderPeople(node, hallId, ranges, "undelivered"));
   node.querySelector(".show-all").addEventListener("click", () => renderPeople(node, hallId, ranges, "all"));
+  node.querySelector(".close-detail").addEventListener("click", () => {
+    detail.hidden = true;
+    openHallId = null;
+    node.classList.remove("is-open");
+  });
 
   return node;
 }
