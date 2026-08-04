@@ -261,7 +261,6 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   const ritsumeiCount = activeRows.filter((row) => row.type === "ritsumei").length;
   const kuyoCount = activeRows.filter((row) => row.type === "kuyo").length;
   const newCount = activeRows.filter((row) => row.isNew).length;
-  const undelivered = activeRows.filter((row) => !hall.delivered[row.key]).length;
   const range = ranges[hallId];
 
   node.querySelector(".hall-name").textContent = hallName;
@@ -272,7 +271,6 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     ["立命行", ritsumeiCount],
     ["供養会", kuyoCount],
     ["新規", newCount],
-    ["個人未配布", undelivered],
     ["不参加", inactiveCount],
   ].map(([label, value]) => `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
