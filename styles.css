@@ -264,6 +264,8 @@ textarea {
   background: #fff;
 }
 
+.global-new-list[hidden] { display: none !important; }
+
 .global-new-section + .global-new-section { border-left: 1px solid var(--line); }
 
 .global-new-title {
