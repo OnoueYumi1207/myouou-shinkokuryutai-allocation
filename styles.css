@@ -439,6 +439,7 @@ textarea {
 }
 
 .card-stats {
+  --stat-value-size: 22px;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
@@ -462,14 +463,14 @@ textarea {
 .stat strong {
   display: block;
   margin-top: 4px;
-  font-size: 22px;
+  font-size: var(--stat-value-size);
   font-weight: 700;
   text-align: center;
 }
 
 .stat .new-breakdown { display: inline-flex; }
 .stat-new .new-breakdown { margin: 0; font-size: 11px; gap: 3px; flex-wrap: nowrap; }
-.stat-new .new-breakdown b { font-size: 22px; }
+.stat-new .new-breakdown b { font-size: var(--stat-value-size); }
 
 .stat.open-new {
   border: 0;
