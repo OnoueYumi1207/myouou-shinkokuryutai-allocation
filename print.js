@@ -71,7 +71,7 @@ function renderCurrent(hallId, hallName, ceremonyId) {
   const start = allocationForHall(hallId, ceremonyId);
   const ritsumeiRows = rows.filter((row) => row.type === "ritsumei");
   const kuyoRows = rows.filter((row) => row.type === "kuyo");
-  const rowsPerColumn = 38;
+  const rowsPerColumn = 32;
   const pageCount = Math.max(1, Math.ceil(Math.max(ritsumeiRows.length, kuyoRows.length) / rowsPerColumn));
   const section = (type, title, typeRows, pageIndex) => {
     const startIndex = Math.ceil(typeRows.length * pageIndex / pageCount);
@@ -86,12 +86,10 @@ function renderCurrent(hallId, hallName, ceremonyId) {
   return Array.from({ length: pageCount }, (_, pageIndex) => `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)}</h2><p>${escapeHtml(current.name)}${current.date ? ` (${current.date})` : ""}${pageCount > 1 ? ` ${pageIndex + 1}/${pageCount}` : ""}</p></div><div class="current-columns">${section("ritsumei", "立命行", ritsumeiRows, pageIndex)}${section("kuyo", "供養会", kuyoRows, pageIndex)}</div></article>`).join("");
 }
 
-function historyNames(hallId) {
+function historyNames(hallId, ceremonyIds) {
   const names = [];
   const seen = new Set();
-  const currentId = currentCeremonyId();
-  const ids = [currentId, ...CEREMONIES.map(([id]) => id).filter((id) => id !== currentId)];
-  ids.forEach((id) => {
+  ceremonyIds.forEach((id) => {
     const hall = hallData(id, hallId);
     [...hall.ritsumei, ...hall.kuyo].forEach((name) => {
       if (!seen.has(name)) { seen.add(name); names.push(name); }
@@ -102,8 +100,8 @@ function historyNames(hallId) {
 
 function historyMark(ceremonyId, hallId, name, pastIds) {
   const hall = hallData(ceremonyId, hallId);
-  if (!hall.updatedAt) return "—";
-  if (!hall.ritsumei.includes(name) && !hall.kuyo.includes(name)) return "−";
+  if (!hall.updatedAt) return "-";
+  if (!hall.ritsumei.includes(name) && !hall.kuyo.includes(name)) return "-";
   const knownBefore = pastIds.some((id) => hallData(id, hallId).updatedAt);
   const appearedBefore = pastIds.some((id) => {
     const past = hallData(id, hallId);
@@ -112,13 +110,18 @@ function historyMark(ceremonyId, hallId, name, pastIds) {
   return knownBefore && !appearedBefore ? "新" : "✓";
 }
 
-function renderHistory(hallId, hallName) {
-  const available = CEREMONIES.filter(([id]) => hallData(id, hallId).updatedAt);
-  if (!available.length) return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)}</h2><p>履歴一覧</p></div><p>履歴データがありません。</p></article>`;
-  const names = historyNames(hallId);
-  const groups = [];
-  for (let start = 0; start < available.length; start += 5) groups.push(available.slice(start, start + 5));
-  return groups.map((group, groupIndex) => `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)} 履歴一覧</h2><p>第14回泉珠収天護摩供から最新まで ${groups.length > 1 ? `${groupIndex + 1}/${groups.length}` : ""}</p></div><table class="history-table"><thead><tr><th>順</th><th>氏名</th>${group.map(([, , label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead><tbody>${names.map((name, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(name)}</td>${group.map(([id]) => { const pastIds = CEREMONIES.slice(0, CEREMONIES.findIndex(([key]) => key === id)).map(([key]) => key); const mark = historyMark(id, hallId, name, pastIds); return `<td class="${mark === "新" ? "history-cell-new" : ""}">${mark}</td>`; }).join("")}</tr>`).join("")}</tbody></table></article>`).join("");
+function renderHistory(hallId, hallName, latestCeremonyId) {
+  const latestIndex = CEREMONIES.findIndex(([id]) => id === latestCeremonyId);
+  const ceremonyIds = CEREMONIES.slice(0, latestIndex + 1).filter(([id]) => id !== "chinkon");
+  const names = historyNames(hallId, ceremonyIds.map(([id]) => id));
+  if (!names.length) return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)} 履歴一覧</h2><p>履歴データがありません。</p></div></article>`;
+  const rowsPerPage = 36;
+  const pageCount = Math.ceil(names.length / rowsPerPage);
+  const latestName = ceremonyData(latestCeremonyId).name;
+  return Array.from({ length: pageCount }, (_, pageIndex) => {
+    const pageNames = names.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
+    return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)} 履歴一覧</h2><p>第14回泉珠収天護摩供から${escapeHtml(latestName)}まで ${pageCount > 1 ? `${pageIndex + 1}/${pageCount}` : ""}</p></div><table class="history-table"><thead><tr><th>順</th><th>氏名</th>${ceremonyIds.map(([, , label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead><tbody>${pageNames.map((name) => { const index = names.indexOf(name); return `<tr><td>${index + 1}</td><td>${escapeHtml(name)}</td>${ceremonyIds.map(([id]) => { const pastIds = ceremonyIds.slice(0, ceremonyIds.findIndex(([key]) => key === id)).map(([key]) => key); const mark = historyMark(id, hallId, name, pastIds); return `<td class="${mark === "新" ? "history-cell-new" : ""}">${mark}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table></article>`;
+  }).join("");
 }
 
 function render() {
@@ -127,7 +130,7 @@ function render() {
   const hallName = HALLS.find(([id]) => id === hallId)?.[1] || "";
   const ceremonyId = ceremonySelect.value;
   document.querySelectorAll(".view-button").forEach((button) => button.classList.toggle("is-active", button.dataset.view === selectedView));
-  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName) : renderCurrent(hallId, hallName, ceremonyId);
+  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName, ceremonyId) : renderCurrent(hallId, hallName, ceremonyId);
   const query = new URLSearchParams({ hall: hallId, ceremony: ceremonyId, view: selectedView });
   history.replaceState(null, "", `./print.html?${query}`);
 }
@@ -151,13 +154,13 @@ async function downloadPdf() {
   button.textContent = "PDF作成中...";
   try {
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 8;
     for (let index = 0; index < sheets.length; index += 1) {
       const canvas = await window.html2canvas(sheets[index], { backgroundColor: "#ffffff", scale: 2, useCORS: true });
-      if (index) pdf.addPage("a4", "portrait");
+      if (index) pdf.addPage("a4", "landscape");
       const scale = Math.min((pageWidth - margin * 2) / canvas.width, (pageHeight - margin * 2) / canvas.height);
       const width = canvas.width * scale;
       const height = canvas.height * scale;

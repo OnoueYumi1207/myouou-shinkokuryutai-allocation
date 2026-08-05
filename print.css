@@ -75,7 +75,7 @@ th, td { border: 1px solid #aeb8c1; }
 .current-table .new { font-weight: 700; }
 
 .history-table { table-layout: fixed; font-size: 8px; }
-.history-table th, .history-table td { height: 6.2mm; padding: 1px 2px; text-align: center; }
+.history-table th, .history-table td { height: 5.2mm; padding: 1px 2px; text-align: center; }
 .history-table thead th { background: #f0f2f4; font-weight: 700; }
 .history-table th:first-child, .history-table td:first-child { width: 8mm; }
 .history-table th:nth-child(2), .history-table td:nth-child(2) { width: 30mm; text-align: left; }
@@ -91,7 +91,7 @@ th, td { border: 1px solid #aeb8c1; }
 }
 
 @media print {
-  @page { size: A4 portrait; margin: 8mm; }
+  @page { size: A4 landscape; margin: 8mm; }
   .screen-header, .screen-controls, .screen-status { display: none !important; }
   body { background: #fff; }
   main { width: auto; margin: 0; }
@@ -110,5 +110,7 @@ th, td { border: 1px solid #aeb8c1; }
   }
   .sheet-heading { margin-bottom: 5mm; }
   .sheet-heading h2 { font-size: 18px; }
-  .current-table td { height: 6.5mm; }
+  .current-table td { height: 5.2mm; }
+  .history-table { font-size: 7px; }
+  .history-table th, .history-table td { height: 4.6mm; }
 }
