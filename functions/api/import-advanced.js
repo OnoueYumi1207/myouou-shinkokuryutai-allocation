@@ -194,10 +194,14 @@ function mapReports(reports) {
 }
 
 function lines(value) {
-  return String(value || "")
+  return [...new Set(String(value || "")
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+    .map((line) => correctParticipantName(line.trim()))
+    .filter(Boolean))];
+}
+
+function correctParticipantName(name) {
+  return name.replace(/[ 　]/g, "") === "石破福子" ? "石橋福子" : name;
 }
 
 function json(data, status = 200) {

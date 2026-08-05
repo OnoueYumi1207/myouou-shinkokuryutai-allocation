@@ -99,6 +99,7 @@ function loadState() {
       if (!parsed.ceremonies[id]) parsed.ceremonies[id] = makeCeremony(id, name, date);
       parsed.ceremonies[id].name = name;
     });
+    correctSavedNames(parsed);
     if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
     return parsed;
   }
@@ -145,7 +146,40 @@ function internalDeadline(date) {
 }
 
 function normalizeLines(text) {
-  return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  return text.split(/\r?\n/).map((line) => correctParticipantName(line.trim())).filter(Boolean);
+}
+
+function correctParticipantName(name) {
+  return name.replace(/[ 　]/g, "") === "石破福子" ? "石橋福子" : name;
+}
+
+function correctSavedNames(savedState) {
+  Object.values(savedState.ceremonies).forEach((ceremonyData) => {
+    Object.values(ceremonyData.halls).forEach((hall) => {
+      ["ritsumei", "kuyo"].forEach((type) => {
+        const originalNames = hall[type];
+        const correctedNames = [];
+        originalNames.forEach((originalName, originalIndex) => {
+          const correctedName = correctParticipantName(originalName);
+          let correctedIndex = correctedNames.indexOf(correctedName);
+          if (correctedIndex < 0) {
+            correctedIndex = correctedNames.length;
+            correctedNames.push(correctedName);
+          }
+          remapPersonKey(hall.delivered, type, originalIndex, originalName, correctedIndex, correctedName);
+          remapPersonKey(hall.manualNumbers, type, originalIndex, originalName, correctedIndex, correctedName);
+        });
+        hall[type] = correctedNames;
+      });
+    });
+  });
+}
+
+function remapPersonKey(record, type, oldIndex, oldName, newIndex, newName) {
+  const oldKey = `${type}:${oldIndex}:${oldName}`;
+  const newKey = `${type}:${newIndex}:${newName}`;
+  if (oldKey !== newKey && record[oldKey] && !record[newKey]) record[newKey] = record[oldKey];
+  if (oldKey !== newKey) delete record[oldKey];
 }
 
 function ceremony() {
