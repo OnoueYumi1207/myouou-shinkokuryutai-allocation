@@ -85,7 +85,14 @@ th, td { border: 1px solid #aeb8c1; }
   .screen-header { padding: 12px 16px; }
   .screen-header h1 { font-size: 18px; }
   main { width: calc(100% - 20px); margin-top: 10px; }
-  .screen-controls { align-items: stretch; flex-direction: column; }
+  .screen-controls {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    align-items: end;
+    gap: 12px;
+  }
+  .screen-controls label { grid-column: 1 / -1; }
+  .view-switch { display: contents; }
   .print-sheet { padding: 16px; }
   .current-columns { grid-template-columns: 1fr; gap: 16px; }
 }
