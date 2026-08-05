@@ -87,7 +87,6 @@ let currentHall = null;
 let openHallId = null;
 let detailFilters = {};
 let listHallId = "yamanashi";
-let listMode = "history";
 let historyImportInFlight = false;
 let inlineListHallId = null;
 
@@ -224,7 +223,6 @@ function setup() {
   });
 
   document.querySelector("#printButton").addEventListener("click", printCurrentView);
-  document.querySelector("#pdfButton").addEventListener("click", downloadListPdf);
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
@@ -233,12 +231,6 @@ function setup() {
 
 function historyNeedsImport() {
   return !state.historyFetchedAt;
-}
-
-function setListMode(mode) {
-  listMode = mode;
-  const card = document.querySelector(`.hall-card[data-hall-id="${inlineListHallId}"]`);
-  if (card) renderInlineList(card, inlineListHallId);
 }
 
 function printCurrentView() {
@@ -261,8 +253,8 @@ async function downloadListPdf(event) {
   if (!table) return;
 
   const hallName = HALLS.find(([id]) => id === inlineListHallId)[1];
-  const period = listMode === "single" ? ceremony().name : "第14回泉珠収天護摩供から最新まで";
-  const button = event?.currentTarget || document.querySelector("#pdfButton");
+  const period = "第14回泉珠収天護摩供から最新まで";
+  const button = event.currentTarget;
   const originalButtonText = button.textContent;
 
   button.disabled = true;
@@ -504,7 +496,7 @@ function renderInlineList(card, hallId) {
   inlineListHallId = hallId;
   const content = card.querySelector(".inline-list");
   const people = card.querySelector(".people");
-  const ids = listMode === "single" ? [state.currentCeremony] : CEREMONIES.map(([id]) => id);
+  const ids = CEREMONIES.map(([id]) => id);
   const rows = listRows(listHallId, ids);
   const hallName = HALLS.find(([id]) => id === listHallId)[1];
   const columns = ids.map((id) => state.ceremonies[id]);
@@ -512,16 +504,13 @@ function renderInlineList(card, hallId) {
   content.hidden = false;
   content.innerHTML = `
     <div class="list-toolbar">
-      <div class="list-mode" aria-label="表示方法">
-        <button class="button secondary list-single ${listMode === "single" ? "is-selected" : ""}" type="button">この護摩供</button>
-        <button class="button secondary list-history ${listMode === "history" ? "is-selected" : ""}" type="button">履歴</button>
-      </div>
+      <span class="list-label">履歴</span>
       <button class="button primary download-list-pdf" type="button">PDF保存</button>
       <button class="button secondary close-list" type="button">閉じる</button>
     </div>
     <div class="list-heading list-close-area" role="button" tabindex="0" aria-label="名簿に戻る">
       <h2>${escapeHtml(hallName)}</h2>
-      <span>${listMode === "single" ? escapeHtml(ceremony().name) : "第14回泉珠収天護摩供から最新まで"}</span>
+      <span>第14回泉珠収天護摩供から最新まで</span>
     </div>
     <div class="list-scroll">
       <table class="participant-list">
@@ -530,8 +519,6 @@ function renderInlineList(card, hallId) {
       </table>
     </div>
   `;
-  content.querySelector(".list-single").addEventListener("click", () => setListMode("single"));
-  content.querySelector(".list-history").addEventListener("click", () => setListMode("history"));
   content.querySelector(".download-list-pdf").addEventListener("click", downloadListPdf);
   content.querySelector(".close-list").addEventListener("click", () => hideInlineList(card));
   const closeFromHeading = () => hideInlineList(card);
@@ -653,7 +640,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
       return;
     }
     renderInlineList(node, hallId);
-    if (listMode === "history" && historyNeedsImport()) importHistoryFromAdvanced();
+    if (historyNeedsImport()) importHistoryFromAdvanced();
   });
   node.querySelector(".auto-number").addEventListener("click", () => {
     hall.mode = "auto";

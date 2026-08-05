@@ -217,8 +217,18 @@ textarea {
   background: linear-gradient(90deg, #fff8fd, #f2fbff);
 }
 
-.list-mode { display: flex; gap: 6px; flex-wrap: wrap; }
-.button.is-selected { background: #f2e9ff; border-color: #cbb6eb; color: #5f4a88; }
+.list-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #cbb6eb;
+  border-radius: 8px;
+  background: #f2e9ff;
+  color: #5f4a88;
+  font-size: 18px;
+  font-weight: 750;
+}
 
 .list-heading {
   display: flex;
