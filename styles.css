@@ -114,12 +114,16 @@ textarea {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 42px;
   border: 1px solid #bdd9e1;
   border-radius: 7px;
   padding: 8px 14px;
   font: inherit;
   font-weight: 650;
+  text-decoration: none;
   cursor: pointer;
   background: #fff;
   color: var(--ink);

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>印刷用ページ | 聖明王院神国龍体之確証割り振り</title>
+  <link rel="stylesheet" href="./print.css">
+</head>
+<body>
+  <header class="screen-header">
+    <a href="./index.html">割り振りへ戻る</a>
+    <h1>印刷用ページ</h1>
+    <button id="printPageButton" type="button">印刷</button>
+  </header>
+
+  <main>
+    <section class="screen-controls" aria-label="印刷する伝道会の選択">
+      <label>伝道会<select id="hallSelect"></select></label>
+      <div class="view-switch" role="group" aria-label="印刷内容">
+        <button class="view-button is-active" data-view="current" type="button">最新の護摩供</button>
+        <button class="view-button" data-view="history" type="button">履歴一覧</button>
+      </div>
+    </section>
+    <p id="loadStatus" class="screen-status">読み込み中...</p>
+    <section id="printContent" class="print-content" aria-live="polite"></section>
+  </main>
+  <script src="./print.js"></script>
+</body>
+</html>
