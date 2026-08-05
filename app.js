@@ -628,7 +628,8 @@ function listCell(item, name, pastItems) {
 }
 
 function newBreakdownMarkup(ritsumeiCount, kuyoCount) {
-  return `<span class="new-breakdown"><span>立命行 <b>${ritsumeiCount}</b></span><i>／</i><span>供養会 <b>${kuyoCount}</b></span></span>`;
+  const number = (count) => `<b class="${count ? "is-positive" : ""}">${count}</b>`;
+  return `<span class="new-breakdown"><span>立命行 ${number(ritsumeiCount)}</span><i>／</i><span>供養会 ${number(kuyoCount)}</span></span>`;
 }
 
 function render() {

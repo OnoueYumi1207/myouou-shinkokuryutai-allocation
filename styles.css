@@ -190,10 +190,12 @@ textarea {
 }
 
 .new-breakdown b {
-  color: #c94158;
+  color: var(--ink);
   font-size: clamp(26px, 5vw, 40px);
   font-weight: 750;
 }
+
+.new-breakdown b.is-positive { color: #c94158; }
 
 .new-breakdown i {
   color: var(--muted);
