@@ -419,8 +419,9 @@ function renderInlineList(card, hallId) {
         <button class="button secondary list-single ${listMode === "single" ? "is-selected" : ""}" type="button">この護摩供</button>
         <button class="button secondary list-history ${listMode === "history" ? "is-selected" : ""}" type="button">履歴</button>
       </div>
+      <button class="button secondary close-list" type="button">閉じる</button>
     </div>
-    <div class="list-heading">
+    <div class="list-heading list-close-area" role="button" tabindex="0" aria-label="名簿に戻る">
       <h2>${escapeHtml(hallName)}</h2>
       <span>${listMode === "single" ? escapeHtml(ceremony().name) : "第14回泉珠収天護摩供から最新まで"}</span>
     </div>
@@ -433,6 +434,15 @@ function renderInlineList(card, hallId) {
   `;
   content.querySelector(".list-single").addEventListener("click", () => setListMode("single"));
   content.querySelector(".list-history").addEventListener("click", () => setListMode("history"));
+  content.querySelector(".close-list").addEventListener("click", () => hideInlineList(card));
+  const closeFromHeading = () => hideInlineList(card);
+  content.querySelector(".list-close-area").addEventListener("click", closeFromHeading);
+  content.querySelector(".list-close-area").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      closeFromHeading();
+    }
+  });
   card.querySelector(".open-list").textContent = "一覧";
 }
 

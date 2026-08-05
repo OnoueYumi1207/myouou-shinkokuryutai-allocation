@@ -218,6 +218,7 @@ textarea {
 }
 
 .list-mode { display: flex; gap: 6px; flex-wrap: wrap; }
+.close-list { margin-left: auto; }
 .button.is-selected { background: #f2e9ff; border-color: #cbb6eb; color: #5f4a88; }
 
 .list-heading {
@@ -230,6 +231,8 @@ textarea {
 
 .list-heading h2 { margin: 0; font-size: 22px; }
 .list-heading span { color: var(--muted); font-size: 13px; font-weight: 650; }
+.list-close-area { cursor: pointer; }
+.list-close-area:focus-visible { outline: 3px solid #c5a9ee; outline-offset: -3px; }
 .list-scroll { overflow: auto; max-height: calc(100vh - 250px); }
 
 .participant-list {
