@@ -663,6 +663,10 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .card-stats .stat-new {
+    grid-column: span 2;
+  }
+
   .card-top {
     align-items: flex-start;
   }
