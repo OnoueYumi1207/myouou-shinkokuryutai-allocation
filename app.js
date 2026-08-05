@@ -732,11 +732,16 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   });
   node.querySelector(".show-undelivered").addEventListener("click", () => renderPeople(node, hallId, ranges, "undelivered"));
   node.querySelector(".show-all").addEventListener("click", () => renderPeople(node, hallId, ranges, "all"));
-  node.querySelector(".close-detail").addEventListener("click", () => {
+  const closeDetail = () => {
     detail.hidden = true;
     openHallId = null;
     inlineListHallId = null;
     node.classList.remove("is-open");
+  };
+  node.querySelector(".close-detail").addEventListener("click", closeDetail);
+  node.querySelector(".people").addEventListener("click", (event) => {
+    if (event.target.closest("input, button, select, textarea")) return;
+    closeDetail();
   });
 
   return node;
