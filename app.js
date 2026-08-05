@@ -579,8 +579,8 @@ function renderInlineList(card, hallId) {
     </div>
   `;
   content.querySelector(".download-list-pdf").addEventListener("click", downloadListPdf);
-  content.querySelector(".close-list").addEventListener("click", () => hideInlineList(card));
-  const closeFromHeading = () => hideInlineList(card);
+  content.querySelector(".close-list").addEventListener("click", () => collapseHallCard(card));
+  const closeFromHeading = () => collapseHallCard(card);
   content.querySelector(".list-close-area").addEventListener("click", closeFromHeading);
   content.querySelector(".list-close-area").addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -596,6 +596,13 @@ function hideInlineList(card) {
   card.querySelector(".people").hidden = false;
   card.querySelector(".open-list").textContent = "一覧";
   inlineListHallId = null;
+}
+
+function collapseHallCard(card) {
+  hideInlineList(card);
+  card.querySelector(".card-detail").hidden = true;
+  card.classList.remove("is-open");
+  openHallId = null;
 }
 
 function ceremonyHeader(item) {
@@ -714,7 +721,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
   node.querySelector(".open-list").addEventListener("click", () => {
     if (inlineListHallId === hallId) {
-      hideInlineList(node);
+      collapseHallCard(node);
       return;
     }
     renderInlineList(node, hallId);
@@ -733,10 +740,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   node.querySelector(".show-undelivered").addEventListener("click", () => renderPeople(node, hallId, ranges, "undelivered"));
   node.querySelector(".show-all").addEventListener("click", () => renderPeople(node, hallId, ranges, "all"));
   const closeDetail = () => {
-    detail.hidden = true;
-    openHallId = null;
-    inlineListHallId = null;
-    node.classList.remove("is-open");
+    collapseHallCard(node);
   };
   node.querySelector(".close-detail").addEventListener("click", closeDetail);
   node.querySelector(".people").addEventListener("click", (event) => {
