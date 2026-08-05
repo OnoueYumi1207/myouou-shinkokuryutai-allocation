@@ -264,49 +264,83 @@ async function downloadListPdf(event) {
   const period = listMode === "single" ? ceremony().name : "第14回泉珠収天護摩供から最新まで";
   const button = event?.currentTarget || document.querySelector("#pdfButton");
   const originalButtonText = button.textContent;
-  const source = document.createElement("section");
-  source.className = "pdf-export-source";
-  source.innerHTML = `<h1>${escapeHtml(hallName)}</h1><p>${escapeHtml(period)}</p>`;
-  source.appendChild(table.cloneNode(true));
-  document.body.appendChild(source);
 
   button.disabled = true;
   button.textContent = "PDF作成中...";
   try {
-    const canvas = await window.html2canvas(source, {
-      backgroundColor: "#ffffff",
-      scale: 1,
-      useCORS: true,
-      windowWidth: source.scrollWidth,
-      windowHeight: source.scrollHeight,
-    });
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a3", compress: true });
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 8;
     const contentWidth = pageWidth - margin * 2;
-    const contentHeight = pageHeight - margin * 2;
-    const sliceHeight = Math.floor(canvas.width * contentHeight / contentWidth);
+    const rows = [...table.tBodies[0].rows];
+    const dataColumnCount = table.tHead.rows[0].cells.length - 2;
+    const columnsPerPage = 4;
+    const rowsPerPage = 15;
+    let page = 0;
 
-    for (let top = 0, page = 0; top < canvas.height; top += sliceHeight, page += 1) {
-      const height = Math.min(sliceHeight, canvas.height - top);
-      const slice = document.createElement("canvas");
-      slice.width = canvas.width;
-      slice.height = height;
-      slice.getContext("2d").drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
-      if (page) pdf.addPage("a3", "landscape");
-      pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, contentWidth, height * contentWidth / canvas.width);
+    for (let columnStart = 0; columnStart < dataColumnCount; columnStart += columnsPerPage) {
+      for (let rowStart = 0; rowStart < rows.length; rowStart += rowsPerPage) {
+        const source = createPdfPageSource(
+          table,
+          hallName,
+          period,
+          columnStart,
+          columnsPerPage,
+          rowStart,
+          rowsPerPage,
+        );
+        document.body.appendChild(source);
+        const canvas = await window.html2canvas(source, {
+          backgroundColor: "#ffffff",
+          scale: 1,
+          useCORS: true,
+          windowWidth: source.scrollWidth,
+          windowHeight: source.scrollHeight,
+          onclone: (clonedDocument) => {
+            const clonedSource = clonedDocument.querySelector(".pdf-export-source");
+            clonedDocument.body.replaceChildren(clonedSource);
+            clonedSource.style.position = "static";
+            clonedSource.style.left = "0";
+          },
+        });
+        source.remove();
+        if (page) pdf.addPage("a4", "portrait");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, contentWidth, canvas.height * contentWidth / canvas.width);
+        page += 1;
+      }
     }
     pdf.save(`allocation-${inlineListHallId}-${ceremony().id}.pdf`);
   } catch (error) {
     console.error("PDF export failed", error);
     window.alert("PDFを作成できませんでした。もう一度お試しください。");
   } finally {
-    source.remove();
     button.disabled = false;
     button.textContent = originalButtonText;
   }
+}
+
+function createPdfPageSource(table, hallName, period, columnStart, columnsPerPage, rowStart, rowsPerPage) {
+  const source = document.createElement("section");
+  source.className = "pdf-export-source";
+  source.innerHTML = `<h1>${escapeHtml(hallName)}</h1><p>${escapeHtml(period)}</p>`;
+  const pageTable = document.createElement("table");
+  pageTable.className = "participant-list";
+  const copyRow = (row) => {
+    const copied = document.createElement("tr");
+    [...row.cells].forEach((cell, index) => {
+      if (index >= 2 && (index < columnStart + 2 || index >= columnStart + 2 + columnsPerPage)) return;
+      copied.appendChild(cell.cloneNode(true));
+    });
+    return copied;
+  };
+  const head = document.createElement("thead");
+  [...table.tHead.rows].forEach((row) => head.appendChild(copyRow(row)));
+  const body = document.createElement("tbody");
+  [...table.tBodies[0].rows].slice(rowStart, rowStart + rowsPerPage).forEach((row) => body.appendChild(copyRow(row)));
+  pageTable.append(head, body);
+  source.appendChild(pageTable);
+  return source;
 }
 
 async function importFromAdvanced() {

@@ -262,6 +262,9 @@ textarea {
   position: static !important;
 }
 
+.pdf-export-source .list-cell.ritsumei { background: #d9f0ec !important; }
+.pdf-export-source .list-cell.kuyo { background: #eee6fa !important; }
+
 .participant-list {
   width: max-content;
   min-width: 100%;
@@ -323,8 +326,8 @@ textarea {
 .ceremony-count b { font-weight: 700; }
 .list-cell { height: 36px; }
 .list-cell strong { display: block; color: #478b82; font-size: 22px; line-height: 1; }
-.list-cell.ritsumei { background: color-mix(in srgb, var(--ritsumei) 66%, white); }
-.list-cell.kuyo { background: color-mix(in srgb, var(--kuyo) 66%, white); }
+.list-cell.ritsumei { background: #d9f0ec; }
+.list-cell.kuyo { background: #eee6fa; }
 .list-cell.new strong { color: #d13e58; font-size: 23px; }
 .list-cell.absent { background: #f1f1f3; }
 .list-cell.absent strong { color: #89878d; font-size: 21px; }
@@ -467,8 +470,8 @@ textarea {
   border-top: 1px solid #f0e4f8;
 }
 
-.person-row.ritsumei { background: color-mix(in srgb, var(--ritsumei) 58%, white); }
-.person-row.kuyo { background: color-mix(in srgb, var(--kuyo) 62%, white); }
+.person-row.ritsumei { background: #e0f4f3; }
+.person-row.kuyo { background: #f3ebfc; }
 .person-row.inactive {
   background: var(--off);
   color: #8a7184;
