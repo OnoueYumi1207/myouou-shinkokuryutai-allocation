@@ -218,7 +218,7 @@ function setup() {
   });
 
   document.querySelector("#snapshotButton").addEventListener("click", () => {
-    ceremony().snapshotAt = new Date().toISOString();
+    ceremony().snapshotAt = ceremony().snapshotAt ? "" : new Date().toISOString();
     saveState();
     render();
   });
@@ -471,6 +471,10 @@ function render() {
   document.querySelector("#ceremonyTitle").textContent = `${c.name}（${c.date}）`;
   document.querySelector("#ceremonyMeta").textContent = `聖明王院〆切: ${formatDateTime(c.deadline)}`;
   document.querySelector("#snapshotStatus").textContent = c.snapshotAt ? `固定済 ${formatDateTime(c.snapshotAt)}` : "下書き";
+  const snapshotButton = document.querySelector("#snapshotButton");
+  snapshotButton.textContent = c.snapshotAt ? "固定を解除" : "〆切時点として固定";
+  snapshotButton.classList.toggle("primary", !c.snapshotAt);
+  snapshotButton.classList.toggle("secondary", Boolean(c.snapshotAt));
 
   let totalRitsumei = 0;
   let totalKuyo = 0;
