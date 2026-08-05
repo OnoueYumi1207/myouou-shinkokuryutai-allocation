@@ -705,7 +705,7 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm;
+    margin: 5mm;
   }
 
   * {
@@ -713,7 +713,7 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
     -webkit-print-color-adjust: exact;
   }
 
-  .app-header, .toolbar, .detail-actions, dialog {
+  .app-header, .toolbar, .advanced-import, .detail-actions, dialog {
     display: none !important;
   }
 
@@ -729,59 +729,62 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   .summary-band {
     box-shadow: none;
     page-break-after: avoid;
+    border-radius: 4px;
   }
 
   .summary-band > div {
-    padding: 7px 10px;
+    padding: 4px 7px;
   }
 
   .summary-band strong {
-    font-size: 23px;
+    margin-top: 2px;
+    font-size: 18px;
   }
 
   .ceremony-info {
-    padding: 0 0 6px;
+    padding: 2px 0 3px;
   }
 
   .ceremony-info h2 {
-    font-size: 20px;
-    margin-bottom: 2px;
+    font-size: 15px;
+    margin-bottom: 1px;
   }
 
   .ceremony-info p,
   .status-pill,
   .manager-name,
   .summary-label,
-  .stat span {
-    font-size: 10px;
+  .stat > span {
+    font-size: 8px;
   }
 
   .status-pill {
-    padding: 3px 8px;
+    padding: 1px 5px;
   }
 
   .cards {
-    gap: 4px;
+    gap: 2px;
   }
 
   .hall-card {
     break-inside: avoid;
     margin-bottom: 0;
     box-shadow: none;
+    border-radius: 3px;
   }
 
   .card-top {
-    padding: 6px 8px 4px;
+    padding: 3px 6px 1px;
   }
 
   .hall-name {
-    font-size: 15px;
+    font-size: 12px;
   }
 
   .range {
-    min-height: 22px;
-    padding: 1px 8px;
-    font-size: 13px;
+    min-height: 16px;
+    padding: 0 5px;
+    font-size: 10px;
   }
 
   .card-stats {
@@ -789,11 +792,30 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   }
 
   .stat {
-    padding: 4px 7px;
+    padding: 2px 4px;
   }
 
   .stat strong {
-    font-size: 15px;
+    margin-top: 1px;
+    font-size: 12px;
+  }
+
+  .stat-new .new-breakdown {
+    font-size: 7px;
+    gap: 1px;
+  }
+
+  .stat-new .new-breakdown b {
+    font-size: 11px;
+  }
+
+  .summary-band .new-breakdown {
+    font-size: 8px;
+    gap: 2px;
+  }
+
+  .summary-band .new-breakdown b {
+    font-size: 18px;
   }
 
   .card-detail {
