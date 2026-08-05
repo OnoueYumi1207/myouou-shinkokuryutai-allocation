@@ -29,7 +29,6 @@ const HISTORY_CEREMONIES = [
   ["chosei", "長生南十字星護摩供"],
   ["myozen", "妙善閻魔天王護摩供"],
   ["shuten", "収天大龍華祭"],
-  ["chinkon", "鎮魂四海龍王護摩供"],
   ["senju15", "第15回泉珠収天護摩供"],
 ];
 
