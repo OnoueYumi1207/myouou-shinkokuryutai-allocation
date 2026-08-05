@@ -89,23 +89,32 @@ let detailFilters = {};
 let listHallId = "yamanashi";
 let historyImportInFlight = false;
 let inlineListHallId = null;
+let cloudReady = false;
+let cloudSaveTimer = null;
+let changedBeforeCloudLoad = false;
 
 function loadState() {
   const saved = localStorage.getItem(storeKey);
   if (saved) {
-    const parsed = JSON.parse(saved);
-    CEREMONIES.forEach(([id, name, date]) => {
-      if (!parsed.ceremonies[id]) parsed.ceremonies[id] = makeCeremony(id, name, date);
-      parsed.ceremonies[id].name = name;
-    });
-    correctSavedNames(parsed);
-    if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
-    return parsed;
+    return normalizeState(JSON.parse(saved));
   }
   const ceremonies = Object.fromEntries(CEREMONIES.map(([id, name, date]) => [id, {
     ...makeCeremony(id, name, date),
   }]));
   return { currentCeremony: "segaki", currentYear: "2026", ceremonies, historyFetchedAt: "" };
+}
+
+function normalizeState(parsed) {
+  parsed.ceremonies ||= {};
+  CEREMONIES.forEach(([id, name, date]) => {
+    if (!parsed.ceremonies[id]) parsed.ceremonies[id] = makeCeremony(id, name, date);
+    parsed.ceremonies[id].name = name;
+  });
+  correctSavedNames(parsed);
+  if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
+  parsed.currentYear ||= "2026";
+  parsed.historyFetchedAt ||= "";
+  return parsed;
 }
 
 function makeCeremony(id, name, date) {
@@ -136,6 +145,44 @@ function makeInitialHalls(ceremonyId) {
 
 function saveState() {
   localStorage.setItem(storeKey, JSON.stringify(state));
+  if (!cloudReady) {
+    changedBeforeCloudLoad = true;
+    return;
+  }
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(saveSharedState, 500);
+}
+
+async function loadSharedState() {
+  try {
+    const response = await fetch("/api/state");
+    if (!response.ok) throw new Error("共有データを読み込めませんでした。");
+    const shared = await response.json();
+    cloudReady = true;
+    if (shared.state && !changedBeforeCloudLoad) {
+      const normalized = normalizeState(shared.state);
+      Object.keys(state).forEach((key) => delete state[key]);
+      Object.assign(state, normalized);
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      render();
+      return;
+    }
+    saveSharedState();
+  } catch (error) {
+    cloudReady = false;
+  }
+}
+
+async function saveSharedState() {
+  try {
+    await fetch("/api/state", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state }),
+    });
+  } catch (error) {
+    cloudReady = false;
+  }
 }
 
 function internalDeadline(date) {
@@ -227,6 +274,7 @@ function setup() {
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
   render();
+  loadSharedState();
 }
 
 function historyNeedsImport() {

@@ -1,3 +1,7 @@
 name = "myouou-shinkokuryutai-allocation"
 compatibility_date = "2026-08-04"
 pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "ALLOCATION_STATE"
+id = "3f239b9098994f5591626671594864ce"
