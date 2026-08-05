@@ -187,7 +187,7 @@ textarea {
 
 .new-breakdown b {
   color: #c94158;
-  font-size: 24px;
+  font-size: clamp(26px, 5vw, 40px);
   font-weight: 750;
 }
 
@@ -463,7 +463,7 @@ textarea {
 
 .stat .new-breakdown { display: inline-flex; }
 .stat-new .new-breakdown { margin: 0; font-size: 11px; gap: 3px; flex-wrap: nowrap; }
-.stat-new .new-breakdown b { font-size: 19px; }
+.stat-new .new-breakdown b { font-size: 22px; }
 
 .card-detail {
   border-top: 1px solid var(--line);
