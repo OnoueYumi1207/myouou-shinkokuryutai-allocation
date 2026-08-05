@@ -196,6 +196,8 @@ textarea {
   font-style: normal;
 }
 
+.new-breakdown > * { flex: 0 0 auto; }
+
 #totalNew { font-size: 14px; }
 
 .ceremony-info {
@@ -455,7 +457,7 @@ textarea {
 }
 
 .stat-new strong { display: block; }
-.stat-new .new-breakdown { margin-top: 2px; font-size: 11px; gap: 3px; }
+.stat-new .new-breakdown { margin-top: 2px; font-size: 11px; gap: 3px; flex-wrap: nowrap; }
 .stat-new .new-breakdown b { font-size: 19px; }
 
 .card-detail {
