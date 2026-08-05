@@ -208,7 +208,7 @@ function lines(value) {
 
 function correctParticipantName(name) {
   const compactName = name.replace(/[ 　]/g, "");
-  return PARTICIPANT_NAME_CORRECTIONS[compactName] || name;
+  return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
 }
 
 function json(data, status = 200) {

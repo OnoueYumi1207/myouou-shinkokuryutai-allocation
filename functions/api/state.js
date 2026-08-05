@@ -77,7 +77,7 @@ function correctParticipantNames(state) {
 
 function correctParticipantName(name) {
   const compactName = String(name || "").replace(/[ 　]/g, "");
-  return PARTICIPANT_NAME_CORRECTIONS[compactName] || name;
+  return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
 }
 
 function remapPersonKey(record = {}, type, oldIndex, oldName, newIndex, newName) {

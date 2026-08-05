@@ -211,7 +211,7 @@ function normalizeLines(text) {
 
 function correctParticipantName(name) {
   const compactName = name.replace(/[ 　]/g, "");
-  return PARTICIPANT_NAME_CORRECTIONS[compactName] || name;
+  return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
 }
 
 function correctSavedNames(savedState) {
