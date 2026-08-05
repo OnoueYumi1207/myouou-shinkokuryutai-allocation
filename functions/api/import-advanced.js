@@ -202,7 +202,7 @@ function lines(value) {
 
 function correctParticipantName(name) {
   const compactName = name.replace(/[ 　]/g, "");
-  return compactName === "石破福子" || compactName === "石橋福子" ? "石橋福子" : name;
+  return compactName === "石破福子" || compactName === "石橋福子" ? "石橋　福子" : name;
 }
 
 function json(data, status = 200) {
