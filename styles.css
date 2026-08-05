@@ -218,7 +218,6 @@ textarea {
 }
 
 .list-mode { display: flex; gap: 6px; flex-wrap: wrap; }
-.close-list { margin-left: auto; }
 .button.is-selected { background: #f2e9ff; border-color: #cbb6eb; color: #5f4a88; }
 
 .list-heading {
