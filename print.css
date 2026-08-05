@@ -101,6 +101,7 @@ th, td { border: 1px solid #aeb8c1; }
   body { background: #fff; }
   main { width: auto; margin: 0; }
   .print-sheet { margin: 0; padding: 0; box-shadow: none; break-after: page; }
+  .print-sheet + .print-sheet { page-break-before: auto; }
   .print-sheet:last-child { break-after: auto; }
   .sheet-heading { margin-bottom: 5mm; }
   .sheet-heading h2 { font-size: 18px; }
