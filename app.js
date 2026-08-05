@@ -559,6 +559,10 @@ function listCell(item, name, previousItem) {
   return `<td class="list-cell ${type}${isNew ? " new" : ""}"><strong>${isNew ? "新" : "✓"}</strong></td>`;
 }
 
+function newBreakdownMarkup(ritsumeiCount, kuyoCount) {
+  return `<span class="new-breakdown"><span>立命行 <b>${ritsumeiCount}</b></span><i>／</i><span>供養会 <b>${kuyoCount}</b></span></span>`;
+}
+
 function render() {
   const c = ceremony();
   const ranges = allocation();
@@ -574,18 +578,20 @@ function render() {
 
   let totalRitsumei = 0;
   let totalKuyo = 0;
-  let totalNew = 0;
+  let totalNewRitsumei = 0;
+  let totalNewKuyo = 0;
   HALLS.forEach(([hallId]) => {
     const rows = rowsForHall(hallId).filter((row) => row.active);
     totalRitsumei += rows.filter((row) => row.type === "ritsumei").length;
     totalKuyo += rows.filter((row) => row.type === "kuyo").length;
-    totalNew += rows.filter((row) => row.isNew).length;
+    totalNewRitsumei += rows.filter((row) => row.isNew && row.type === "ritsumei").length;
+    totalNewKuyo += rows.filter((row) => row.isNew && row.type === "kuyo").length;
   });
 
   document.querySelector("#totalEligible").textContent = totalRitsumei + totalKuyo;
   document.querySelector("#totalRitsumei").textContent = totalRitsumei;
   document.querySelector("#totalKuyo").textContent = totalKuyo;
-  document.querySelector("#totalNew").textContent = totalNew;
+  document.querySelector("#totalNew").innerHTML = newBreakdownMarkup(totalNewRitsumei, totalNewKuyo);
 
   const cards = document.querySelector("#cards");
   cards.innerHTML = "";
@@ -604,7 +610,8 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   const inactiveCount = rows.length - activeRows.length;
   const ritsumeiCount = activeRows.filter((row) => row.type === "ritsumei").length;
   const kuyoCount = activeRows.filter((row) => row.type === "kuyo").length;
-  const newCount = activeRows.filter((row) => row.isNew).length;
+  const newRitsumeiCount = activeRows.filter((row) => row.isNew && row.type === "ritsumei").length;
+  const newKuyoCount = activeRows.filter((row) => row.isNew && row.type === "kuyo").length;
   const range = ranges[hallId];
 
   node.querySelector(".hall-name").textContent = hallName;
@@ -614,9 +621,9 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     ["合計", activeRows.length],
     ["立命行", ritsumeiCount],
     ["供養会", kuyoCount],
-    ["新規", newCount],
+    ["新規", newBreakdownMarkup(newRitsumeiCount, newKuyoCount), "stat-new"],
     ["不参加", inactiveCount],
-  ].map(([label, value]) => `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
+  ].map(([label, value, className = ""]) => `<div class="stat ${className}"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
   const detail = node.querySelector(".card-detail");
   detail.dataset.printTitle = `${hallName} ${range.count ? `${range.start}〜${range.end}` : "—"}`;
@@ -685,7 +692,7 @@ function renderPeople(card, hallId, ranges, filter) {
       if (filter === "undelivered" && (!row.active || hall.delivered[row.key])) return;
       const number = row.active ? numberForRow(hallId, row, thisActiveIndex, ranges) : "";
       const rowNode = document.createElement("div");
-      rowNode.className = `person-row ${type}${row.active ? "" : " inactive"}`;
+      rowNode.className = `person-row ${type}${row.active ? "" : " inactive"}${row.isNew ? " is-new" : ""}`;
       rowNode.innerHTML = `
         <div class="row-index">${index + 1}</div>
         <div class="person-name"><span>${escapeHtml(row.name)}</span>${row.isNew ? '<span class="badge-new">新</span>' : ""}</div>

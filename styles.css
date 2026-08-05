@@ -174,6 +174,30 @@ textarea {
   color: #213241;
 }
 
+.new-breakdown {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--ink);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 650;
+}
+
+.new-breakdown b {
+  color: #c94158;
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.new-breakdown i {
+  color: var(--muted);
+  font-style: normal;
+}
+
+#totalNew { font-size: 14px; }
+
 .ceremony-info {
   display: flex;
   justify-content: space-between;
@@ -430,6 +454,10 @@ textarea {
   font-weight: 700;
 }
 
+.stat-new strong { display: block; }
+.stat-new .new-breakdown { margin-top: 2px; font-size: 11px; gap: 3px; }
+.stat-new .new-breakdown b { font-size: 19px; }
+
 .card-detail {
   border-top: 1px solid var(--line);
   background: #fff;
@@ -482,6 +510,7 @@ textarea {
 
 .person-row.ritsumei { background: #e0f4f3; }
 .person-row.kuyo { background: #f3ebfc; }
+.person-row.is-new { background: #fff4cf; }
 .person-row.inactive {
   background: var(--off);
   color: #8a7184;
