@@ -272,7 +272,11 @@ function setup() {
 
   document.querySelector("#printButton").addEventListener("click", printCurrentView);
   document.querySelector("#globalNewButton").addEventListener("click", () => {
-    globalNewOpen = !globalNewOpen;
+    globalNewOpen = document.querySelector("#globalNewList").hidden;
+    renderGlobalNewList();
+  });
+  document.querySelector("#globalNewList").addEventListener("click", () => {
+    globalNewOpen = false;
     renderGlobalNewList();
   });
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
