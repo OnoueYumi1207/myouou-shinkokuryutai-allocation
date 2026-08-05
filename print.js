@@ -17,6 +17,7 @@ const CEREMONIES = [
 ];
 
 const hallSelect = document.querySelector("#hallSelect");
+const ceremonySelect = document.querySelector("#ceremonyPrintSelect");
 const content = document.querySelector("#printContent");
 const status = document.querySelector("#loadStatus");
 let sharedState = null;
@@ -24,6 +25,7 @@ let selectedView = new URLSearchParams(location.search).get("view") === "history
 
 HALLS.forEach(([id, name]) => hallSelect.add(new Option(name, id)));
 hallSelect.value = new URLSearchParams(location.search).get("hall") || "oedo";
+CEREMONIES.forEach(([id, name]) => ceremonySelect.add(new Option(name, id)));
 
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
@@ -41,8 +43,7 @@ function currentCeremonyId() {
   return sharedState?.currentCeremony || "segaki";
 }
 
-function currentRows(hallId) {
-  const ceremonyId = currentCeremonyId();
+function currentRows(hallId, ceremonyId = currentCeremonyId()) {
   const current = hallData(ceremonyId, hallId);
   const currentIndex = CEREMONIES.findIndex(([id]) => id === ceremonyId);
   const past = CEREMONIES.slice(0, currentIndex).map(([id]) => hallData(id, hallId));
@@ -53,22 +54,21 @@ function currentRows(hallId) {
   })));
 }
 
-function allocationForHall(hallId) {
+function allocationForHall(hallId, ceremonyId = currentCeremonyId()) {
   let next = 1;
   for (const [id] of HALLS) {
-    const count = currentRows(id).length;
+    const count = currentRows(id, ceremonyId).length;
     if (id === hallId) return next;
     next += count;
   }
   return next;
 }
 
-function renderCurrent(hallId, hallName) {
-  const ceremonyId = currentCeremonyId();
+function renderCurrent(hallId, hallName, ceremonyId) {
   const current = ceremonyData(ceremonyId);
   const hall = hallData(ceremonyId, hallId);
-  const rows = currentRows(hallId);
-  const start = allocationForHall(hallId);
+  const rows = currentRows(hallId, ceremonyId);
+  const start = allocationForHall(hallId, ceremonyId);
   const ritsumeiRows = rows.filter((row) => row.type === "ritsumei");
   const kuyoRows = rows.filter((row) => row.type === "kuyo");
   const rowsPerColumn = 38;
@@ -125,21 +125,60 @@ function render() {
   if (!sharedState) return;
   const hallId = hallSelect.value;
   const hallName = HALLS.find(([id]) => id === hallId)?.[1] || "";
+  const ceremonyId = ceremonySelect.value;
   document.querySelectorAll(".view-button").forEach((button) => button.classList.toggle("is-active", button.dataset.view === selectedView));
-  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName) : renderCurrent(hallId, hallName);
-  const query = new URLSearchParams({ hall: hallId, view: selectedView });
+  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName) : renderCurrent(hallId, hallName, ceremonyId);
+  const query = new URLSearchParams({ hall: hallId, ceremony: ceremonyId, view: selectedView });
   history.replaceState(null, "", `./print.html?${query}`);
 }
 
 hallSelect.addEventListener("change", render);
+ceremonySelect.addEventListener("change", () => { selectedView = "current"; render(); });
 document.querySelectorAll(".view-button").forEach((button) => button.addEventListener("click", () => { selectedView = button.dataset.view; render(); }));
 document.querySelector("#printPageButton").addEventListener("click", () => window.print());
+document.querySelector("#downloadPdfButton").addEventListener("click", downloadPdf);
+
+async function downloadPdf() {
+  const button = document.querySelector("#downloadPdfButton");
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    window.alert("PDF作成の準備ができませんでした。もう一度お試しください。");
+    return;
+  }
+  const sheets = [...document.querySelectorAll(".print-sheet")];
+  if (!sheets.length) return;
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "PDF作成中...";
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    for (let index = 0; index < sheets.length; index += 1) {
+      const canvas = await window.html2canvas(sheets[index], { backgroundColor: "#ffffff", scale: 2, useCORS: true });
+      if (index) pdf.addPage("a4", "portrait");
+      const scale = Math.min((pageWidth - margin * 2) / canvas.width, (pageHeight - margin * 2) / canvas.height);
+      const width = canvas.width * scale;
+      const height = canvas.height * scale;
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", (pageWidth - width) / 2, margin, width, height);
+    }
+    pdf.save(`${hallSelect.value}-${ceremonySelect.value}-${selectedView}.pdf`);
+  } catch (error) {
+    console.error("PDF export failed", error);
+    window.alert("PDFを作成できませんでした。もう一度お試しください。");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
 
 fetch("/api/state")
   .then((response) => response.ok ? response.json() : Promise.reject(new Error("共有データを取得できませんでした。")))
   .then((data) => {
     sharedState = data.state;
     if (!sharedState) throw new Error("共有データがまだありません。割り振り画面を一度開いてください。");
+    ceremonySelect.value = new URLSearchParams(location.search).get("ceremony") || currentCeremonyId();
     status.hidden = true;
     render();
   })
