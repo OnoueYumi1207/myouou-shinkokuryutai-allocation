@@ -469,6 +469,17 @@ textarea {
 .stat-new .new-breakdown { margin: 0; font-size: 11px; gap: 3px; flex-wrap: nowrap; }
 .stat-new .new-breakdown b { font-size: 22px; }
 
+.stat.open-new {
+  border: 0;
+  width: 100%;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.stat.open-new:hover { background: #fff0f6; }
+
 .card-detail {
   border-top: 1px solid var(--line);
   background: #fff;
@@ -508,6 +519,17 @@ textarea {
 .participant-section + .participant-section {
   border-left: 1px solid var(--line);
 }
+
+.new-person-row {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-top: 1px solid #f0e4f8;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.new-person-row.ritsumei { background: #e0f4f3; }
+.new-person-row.kuyo { background: #f3ebfc; }
 
 .person-row {
   display: grid;
@@ -684,6 +706,8 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   }
 
   .people { grid-template-columns: 1fr; }
+
+  .people.new-only { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .participant-section + .participant-section {
     border-top: 1px solid var(--line);

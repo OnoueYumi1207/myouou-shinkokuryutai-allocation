@@ -698,7 +698,11 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     ["供養会", kuyoCount],
     ["新規", newBreakdownMarkup(newRitsumeiCount, newKuyoCount), "stat-new"],
     ["不参加", inactiveCount],
-  ].map(([label, value, className = ""]) => `<div class="stat ${className}"><span>${label}</span><strong>${value}</strong></div>`).join("");
+  ].map(([label, value, className = ""]) => {
+    const tag = label === "新規" ? "button" : "div";
+    const extra = label === "新規" ? " open-new" : "";
+    return `<${tag} class="stat ${className}${extra}"${tag === "button" ? ' type="button"' : ""}><span>${label}</span><strong>${value}</strong></${tag}>`;
+  }).join("");
 
   const detail = node.querySelector(".card-detail");
   detail.dataset.printTitle = `${hallName} ${range.count ? `${range.start}〜${range.end}` : "—"}`;
@@ -719,6 +723,14 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     node.querySelector(selector).disabled = isLocked;
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
+  node.querySelector(".open-new").addEventListener("click", () => {
+    node.querySelector(".inline-list").hidden = true;
+    inlineListHallId = null;
+    detail.hidden = false;
+    openHallId = hallId;
+    node.classList.add("is-open");
+    renderPeople(node, hallId, ranges, "new");
+  });
   node.querySelector(".open-list").addEventListener("click", () => {
     if (inlineListHallId === hallId) {
       collapseHallCard(node);
@@ -756,20 +768,31 @@ function renderPeople(card, hallId, ranges, filter) {
   const people = card.querySelector(".people");
   const hall = ceremony().halls[hallId];
   const rows = rowsForHall(hallId);
+  people.hidden = false;
+  people.classList.toggle("new-only", filter === "new");
   people.innerHTML = "";
   let activeIndex = 0;
   ["ritsumei", "kuyo"].forEach((type) => {
     const typeRows = rows.filter((row) => row.type === type);
     const activeTypeRows = typeRows.filter((row) => row.active);
+    const newTypeRows = activeTypeRows.filter((row) => row.isNew);
     const section = document.createElement("section");
     section.className = `participant-section ${type}`;
     const title = document.createElement("div");
     title.className = `section-title ${type}`;
-    title.innerHTML = `<span>${type === "ritsumei" ? "立命行" : "供養会"}</span><span>${activeTypeRows.length}名</span>`;
+    title.innerHTML = `<span>${type === "ritsumei" ? "立命行" : "供養会"}</span><span>${filter === "new" ? newTypeRows.length : activeTypeRows.length}名</span>`;
     section.appendChild(title);
     typeRows.forEach((row, index) => {
       const thisActiveIndex = row.active ? activeIndex++ : null;
       if (filter === "undelivered" && (!row.active || hall.delivered[row.key])) return;
+      if (filter === "new" && (!row.active || !row.isNew)) return;
+      if (filter === "new") {
+        const newRowNode = document.createElement("div");
+        newRowNode.className = `new-person-row ${type}`;
+        newRowNode.textContent = row.name;
+        section.appendChild(newRowNode);
+        return;
+      }
       const number = row.active ? numberForRow(hallId, row, thisActiveIndex, ranges) : "";
       const rowNode = document.createElement("div");
       rowNode.className = `person-row ${type}${row.active ? "" : " inactive"}${row.isNew ? " is-new" : ""}`;
