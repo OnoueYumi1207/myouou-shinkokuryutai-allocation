@@ -89,6 +89,7 @@ let detailFilters = {};
 let listHallId = "yamanashi";
 let historyImportInFlight = false;
 let inlineListHallId = null;
+let globalNewOpen = false;
 let cloudReady = false;
 let cloudSaveTimer = null;
 let changedBeforeCloudLoad = false;
@@ -270,6 +271,10 @@ function setup() {
   });
 
   document.querySelector("#printButton").addEventListener("click", printCurrentView);
+  document.querySelector("#globalNewButton").addEventListener("click", () => {
+    globalNewOpen = !globalNewOpen;
+    renderGlobalNewList();
+  });
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
@@ -667,12 +672,30 @@ function render() {
   document.querySelector("#totalRitsumei").textContent = totalRitsumei;
   document.querySelector("#totalKuyo").textContent = totalKuyo;
   document.querySelector("#totalNew").innerHTML = newBreakdownMarkup(totalNewRitsumei, totalNewKuyo);
+  renderGlobalNewList();
 
   const cards = document.querySelector("#cards");
   cards.innerHTML = "";
   HALLS.forEach(([hallId, hallName, managerName]) => {
     cards.appendChild(renderHallCard(hallId, hallName, managerName, ranges));
   });
+}
+
+function renderGlobalNewList() {
+  const container = document.querySelector("#globalNewList");
+  if (!globalNewOpen) {
+    container.hidden = true;
+    return;
+  }
+  const byType = { ritsumei: [], kuyo: [] };
+  HALLS.forEach(([hallId, hallName]) => {
+    rowsForHall(hallId).forEach((row) => {
+      if (row.active && row.isNew) byType[row.type].push({ name: row.name, hallName });
+    });
+  });
+  const section = (type, label) => `<section class="global-new-section ${type}"><div class="global-new-title ${type}"><span>${label}</span><span>${byType[type].length}名</span></div>${byType[type].length ? byType[type].map(({ name, hallName }) => `<div class="global-new-row">${escapeHtml(name)} <span>（${escapeHtml(hallName)}）</span></div>`).join("") : '<div class="global-new-empty">新規なし</div>'}</section>`;
+  container.hidden = false;
+  container.innerHTML = `${section("ritsumei", "立命行")}${section("kuyo", "供養会")}`;
 }
 
 function renderHallCard(hallId, hallName, managerName, ranges) {

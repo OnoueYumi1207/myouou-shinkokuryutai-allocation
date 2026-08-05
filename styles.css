@@ -155,13 +155,25 @@ textarea {
   box-shadow: 0 12px 28px rgba(151, 127, 192, .11);
 }
 
-.summary-band > div {
+.summary-band > div,
+.summary-band > button {
   padding: 16px 18px;
   border-right: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,239,255,.82));
 }
 
-.summary-band > div:last-child { border-right: 0; }
+.summary-band > div:last-child,
+.summary-band > button:last-child { border-right: 0; }
+
+.summary-new {
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.summary-new:hover { background: #fff0f6; }
 
 .summary-label {
   color: #5d6074;
@@ -241,6 +253,40 @@ textarea {
   display: grid;
   gap: 10px;
 }
+
+.global-new-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 10px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.global-new-section + .global-new-section { border-left: 1px solid var(--line); }
+
+.global-new-title {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.global-new-title.ritsumei { background: var(--ritsumei); }
+.global-new-title.kuyo { background: var(--kuyo); }
+
+.global-new-row,
+.global-new-empty {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-top: 1px solid #f0e4f8;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.global-new-row span { color: var(--muted); font-size: 14px; }
+.global-new-empty { color: var(--muted); }
 
 .list-toolbar {
   display: flex;
@@ -679,7 +725,8 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .summary-band > div {
+  .summary-band > div,
+  .summary-band > button {
     border-bottom: 1px solid var(--line);
   }
 
@@ -711,6 +758,11 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
   .people { grid-template-columns: 1fr; }
 
   .people.new-only { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .global-new-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .global-new-row,
+  .global-new-empty { padding: 8px; font-size: 15px; }
+  .global-new-row span { display: block; margin-top: 2px; font-size: 12px; }
 
   .participant-section + .participant-section {
     border-top: 1px solid var(--line);
