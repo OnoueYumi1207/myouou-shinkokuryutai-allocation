@@ -246,7 +246,7 @@ function printCurrentView() {
   requestAnimationFrame(() => window.print());
 }
 
-async function downloadListPdf() {
+async function downloadListPdf(event) {
   if (!inlineListHallId) {
     window.alert("一覧を表示してからPDF保存を押してください。");
     return;
@@ -262,7 +262,8 @@ async function downloadListPdf() {
 
   const hallName = HALLS.find(([id]) => id === inlineListHallId)[1];
   const period = listMode === "single" ? ceremony().name : "第14回泉珠収天護摩供から最新まで";
-  const button = document.querySelector("#pdfButton");
+  const button = event?.currentTarget || document.querySelector("#pdfButton");
+  const originalButtonText = button.textContent;
   const source = document.createElement("section");
   source.className = "pdf-export-source";
   source.innerHTML = `<h1>${escapeHtml(hallName)}</h1><p>${escapeHtml(period)}</p>`;
@@ -274,7 +275,7 @@ async function downloadListPdf() {
   try {
     const canvas = await window.html2canvas(source, {
       backgroundColor: "#ffffff",
-      scale: 2,
+      scale: 1,
       useCORS: true,
       windowWidth: source.scrollWidth,
       windowHeight: source.scrollHeight,
@@ -299,11 +300,12 @@ async function downloadListPdf() {
     }
     pdf.save(`allocation-${inlineListHallId}-${ceremony().id}.pdf`);
   } catch (error) {
+    console.error("PDF export failed", error);
     window.alert("PDFを作成できませんでした。もう一度お試しください。");
   } finally {
     source.remove();
     button.disabled = false;
-    button.textContent = "PDF保存";
+    button.textContent = originalButtonText;
   }
 }
 
@@ -480,6 +482,7 @@ function renderInlineList(card, hallId) {
         <button class="button secondary list-single ${listMode === "single" ? "is-selected" : ""}" type="button">この護摩供</button>
         <button class="button secondary list-history ${listMode === "history" ? "is-selected" : ""}" type="button">履歴</button>
       </div>
+      <button class="button primary download-list-pdf" type="button">PDF保存</button>
       <button class="button secondary close-list" type="button">閉じる</button>
     </div>
     <div class="list-heading list-close-area" role="button" tabindex="0" aria-label="名簿に戻る">
@@ -495,6 +498,7 @@ function renderInlineList(card, hallId) {
   `;
   content.querySelector(".list-single").addEventListener("click", () => setListMode("single"));
   content.querySelector(".list-history").addEventListener("click", () => setListMode("history"));
+  content.querySelector(".download-list-pdf").addEventListener("click", downloadListPdf);
   content.querySelector(".close-list").addEventListener("click", () => hideInlineList(card));
   const closeFromHeading = () => hideInlineList(card);
   content.querySelector(".list-close-area").addEventListener("click", closeFromHeading);
