@@ -461,15 +461,22 @@ async function importHistoryFromAdvanced() {
 function rowsForHall(hallId) {
   const current = ceremony().halls[hallId];
   const previous = previousCeremony()?.halls[hallId];
+  const ceremonyIndex = CEREMONIES.findIndex(([id]) => id === state.currentCeremony);
+  const pastCeremonies = CEREMONIES.slice(0, ceremonyIndex).map(([id]) => state.ceremonies[id]);
   const rows = [];
-  addRows(rows, "ritsumei", current.ritsumei, previous?.ritsumei || []);
-  addRows(rows, "kuyo", current.kuyo, previous?.kuyo || []);
+  addRows(rows, "ritsumei", current.ritsumei, previous?.ritsumei || [], pastCeremonies, hallId);
+  addRows(rows, "kuyo", current.kuyo, previous?.kuyo || [], pastCeremonies, hallId);
   return rows;
 }
 
-function addRows(rows, type, currentNames, previousNames) {
+function addRows(rows, type, currentNames, previousNames, pastCeremonies, hallId) {
   const currentSet = new Set(currentNames);
   const previousSet = new Set(previousNames);
+  const hasPastData = pastCeremonies.some((item) => item.halls[hallId]?.updatedAt);
+  const pastNames = new Set(pastCeremonies.flatMap((item) => {
+    const hall = item.halls[hallId];
+    return hall?.updatedAt ? [...hall.ritsumei, ...hall.kuyo] : [];
+  }));
   const merged = [];
   previousNames.forEach((name) => merged.push(name));
   currentNames.forEach((name) => {
@@ -481,7 +488,7 @@ function addRows(rows, type, currentNames, previousNames) {
       name,
       key: `${type}:${index}:${name}`,
       active: currentSet.has(name),
-      isNew: currentSet.has(name) && previousNames.length > 0 && !previousSet.has(name),
+      isNew: currentSet.has(name) && hasPastData && !pastNames.has(name),
     });
   });
 }
@@ -567,7 +574,7 @@ function renderInlineList(card, hallId) {
     <div class="list-scroll">
       <table class="participant-list">
         <thead><tr><th>順</th><th>氏名</th>${columns.map((item) => ceremonyHeader(item)).join("")}</tr></thead>
-        <tbody>${rows.map((name, index) => `<tr><td>${index + 1}</td><th scope="row">${escapeHtml(name)}</th>${columns.map((item, columnIndex) => listCell(item, name, columns[columnIndex - 1])).join("")}</tr>`).join("")}</tbody>
+        <tbody>${rows.map((name, index) => `<tr><td>${index + 1}</td><th scope="row">${escapeHtml(name)}</th>${columns.map((item, columnIndex) => listCell(item, name, columns.slice(0, columnIndex))).join("")}</tr>`).join("")}</tbody>
       </table>
     </div>
   `;
@@ -599,15 +606,17 @@ function ceremonyHeader(item) {
   return `<th title="${escapeHtml(item.name)}"><span class="ceremony-head"><span>${escapeHtml(label)}</span><span class="ceremony-count"><b>${ritsumei}</b><b>${kuyo}</b></span></span></th>`;
 }
 
-function listCell(item, name, previousItem) {
+function listCell(item, name, pastItems) {
   const hall = item.halls[listHallId];
   if (!hall.updatedAt) return '<td class="list-cell unavailable">—</td>';
   const type = hall.ritsumei.includes(name) ? "ritsumei" : hall.kuyo.includes(name) ? "kuyo" : "";
   if (!type) return '<td class="list-cell absent"><strong>−</strong></td>';
-  const previousHall = previousItem?.halls[listHallId];
-  const appearedBefore = previousHall?.updatedAt
-    && (previousHall.ritsumei.includes(name) || previousHall.kuyo.includes(name));
-  const isNew = Boolean(previousHall?.updatedAt) && !appearedBefore;
+  const knownBefore = pastItems.some((pastItem) => pastItem.halls[listHallId]?.updatedAt);
+  const appearedBefore = pastItems.some((pastItem) => {
+    const pastHall = pastItem.halls[listHallId];
+    return pastHall?.updatedAt && (pastHall.ritsumei.includes(name) || pastHall.kuyo.includes(name));
+  });
+  const isNew = knownBefore && !appearedBefore;
   return `<td class="list-cell ${type}${isNew ? " new" : ""}"><strong>${isNew ? "新" : "✓"}</strong></td>`;
 }
 
