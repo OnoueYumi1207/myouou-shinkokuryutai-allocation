@@ -57,7 +57,6 @@ main { width: min(1060px, calc(100% - 32px)); margin: 22px auto 60px; }
   box-shadow: 0 1px 4px rgba(16, 30, 45, .12);
 }
 
-.print-sheet + .print-sheet { page-break-before: always; }
 .sheet-heading { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 7mm; }
 .sheet-heading h2 { margin: 0; font-size: 20px; }
 .sheet-heading p { margin: 0; color: #4d5968; font-size: 11px; font-weight: 700; }
@@ -100,9 +99,19 @@ th, td { border: 1px solid #aeb8c1; }
   .screen-header, .screen-controls, .screen-status { display: none !important; }
   body { background: #fff; }
   main { width: auto; margin: 0; }
-  .print-sheet { margin: 0; padding: 0; box-shadow: none; break-after: page; }
-  .print-sheet + .print-sheet { page-break-before: auto; }
-  .print-sheet:last-child { break-after: auto; }
+  .print-sheet {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    break-before: page;
+    break-after: auto;
+    page-break-before: always;
+    page-break-after: auto;
+  }
+  .print-sheet:first-child {
+    break-before: auto;
+    page-break-before: auto;
+  }
   .sheet-heading { margin-bottom: 5mm; }
   .sheet-heading h2 { font-size: 18px; }
   .current-table td { height: 6.5mm; }
