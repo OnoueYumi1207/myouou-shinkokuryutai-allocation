@@ -578,10 +578,12 @@ function renderPeople(card, hallId, ranges, filter) {
   ["ritsumei", "kuyo"].forEach((type) => {
     const typeRows = rows.filter((row) => row.type === type);
     const activeTypeRows = typeRows.filter((row) => row.active);
+    const section = document.createElement("section");
+    section.className = `participant-section ${type}`;
     const title = document.createElement("div");
     title.className = `section-title ${type}`;
     title.innerHTML = `<span>${type === "ritsumei" ? "立命行" : "供養会"}</span><span>${activeTypeRows.length}名</span>`;
-    people.appendChild(title);
+    section.appendChild(title);
     typeRows.forEach((row, index) => {
       const thisActiveIndex = row.active ? activeIndex++ : null;
       if (filter === "undelivered" && (!row.active || hall.delivered[row.key])) return;
@@ -628,8 +630,9 @@ function renderPeople(card, hallId, ranges, filter) {
         });
         rowNode.querySelector(".deliver").appendChild(checkbox);
       }
-      people.appendChild(rowNode);
+      section.appendChild(rowNode);
     });
+    people.appendChild(section);
   });
 }
 

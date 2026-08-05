@@ -413,6 +413,16 @@ textarea {
 .section-title.ritsumei { background: var(--ritsumei); }
 .section-title.kuyo { background: var(--kuyo); }
 
+.people {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.participant-section + .participant-section {
+  border-left: 1px solid var(--line);
+}
+
 .person-row {
   display: grid;
   grid-template-columns: 44px minmax(120px, 1fr) 74px 54px;
@@ -580,6 +590,13 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
 
   .range {
     font-size: 18px;
+  }
+
+  .people { grid-template-columns: 1fr; }
+
+  .participant-section + .participant-section {
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 
   .person-row {
