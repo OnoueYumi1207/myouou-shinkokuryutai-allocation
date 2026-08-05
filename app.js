@@ -385,6 +385,10 @@ function createPdfPageSource(table, hallName, period, columnStart, columnsPerPag
 
 async function importFromAdvanced() {
   const status = document.querySelector("#advancedImportStatus");
+  if (ceremony().snapshotAt) {
+    status.textContent = "固定を解除してから取得してください。";
+    return;
+  }
   status.textContent = "取得中...";
   try {
     const res = await fetch("/api/import-advanced", {
@@ -614,15 +618,21 @@ function newBreakdownMarkup(ritsumeiCount, kuyoCount) {
 function render() {
   const c = ceremony();
   const ranges = allocation();
+  const isLocked = Boolean(c.snapshotAt);
   document.querySelector("#ceremonySelect").value = state.currentCeremony;
-  document.querySelector("#deadlineInput").value = c.deadline;
+  const deadlineInput = document.querySelector("#deadlineInput");
+  deadlineInput.value = c.deadline;
+  deadlineInput.disabled = isLocked;
   document.querySelector("#ceremonyTitle").textContent = `${c.name}（${c.date}）`;
   document.querySelector("#ceremonyMeta").textContent = `聖明王院〆切: ${formatDateTime(c.deadline)}`;
-  document.querySelector("#snapshotStatus").textContent = c.snapshotAt ? `固定済 ${formatDateTime(c.snapshotAt)}` : "下書き";
+  const snapshotStatus = document.querySelector("#snapshotStatus");
+  snapshotStatus.hidden = !isLocked;
+  snapshotStatus.textContent = isLocked ? `固定済 ${formatDateTime(c.snapshotAt)}` : "";
   const snapshotButton = document.querySelector("#snapshotButton");
-  snapshotButton.textContent = c.snapshotAt ? "固定を解除" : "〆切時点として固定";
-  snapshotButton.classList.toggle("primary", !c.snapshotAt);
-  snapshotButton.classList.toggle("secondary", Boolean(c.snapshotAt));
+  snapshotButton.textContent = isLocked ? "固定を解除" : "〆切時点として固定";
+  snapshotButton.classList.toggle("primary", !isLocked);
+  snapshotButton.classList.toggle("secondary", isLocked);
+  document.querySelector("#advancedImportButton").disabled = isLocked;
 
   let totalRitsumei = 0;
   let totalKuyo = 0;
@@ -660,6 +670,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   const kuyoCount = activeRows.filter((row) => row.type === "kuyo").length;
   const newRitsumeiCount = activeRows.filter((row) => row.isNew && row.type === "ritsumei").length;
   const newKuyoCount = activeRows.filter((row) => row.isNew && row.type === "kuyo").length;
+  const isLocked = Boolean(ceremony().snapshotAt);
   const range = ranges[hallId];
 
   node.querySelector(".hall-name").textContent = hallName;
@@ -687,6 +698,9 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     if (detail.hidden && inlineListHallId === hallId) inlineListHallId = null;
     node.classList.toggle("is-open", !detail.hidden);
     if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
+  });
+  [".edit-names", ".auto-number", ".manual-number"].forEach((selector) => {
+    node.querySelector(selector).disabled = isLocked;
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
   node.querySelector(".open-list").addEventListener("click", () => {
@@ -756,6 +770,7 @@ function renderPeople(card, hallId, ranges, filter) {
         input.className = "number-input";
         input.inputMode = "numeric";
         input.value = number;
+        input.disabled = Boolean(ceremony().snapshotAt);
         input.addEventListener("change", () => {
           hall.manualNumbers[row.key] = input.value.trim();
           saveState();
@@ -798,6 +813,7 @@ function openEditDialog(hallId) {
 }
 
 function saveDialogNames() {
+  if (ceremony().snapshotAt) return;
   const hall = ceremony().halls[currentHall];
   hall.ritsumei = normalizeLines(document.querySelector("#ritsumeiText").value);
   hall.kuyo = normalizeLines(document.querySelector("#kuyoText").value);

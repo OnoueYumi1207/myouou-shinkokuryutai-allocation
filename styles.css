@@ -229,6 +229,8 @@ textarea {
   font-weight: 650;
 }
 
+.status-pill[hidden] { display: none !important; }
+
 .cards {
   display: grid;
   gap: 10px;
