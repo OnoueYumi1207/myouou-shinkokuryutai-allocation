@@ -761,8 +761,9 @@ dialog::backdrop { background: rgba(31, 41, 51, .28); }
 
   .global-new-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .global-new-row,
-  .global-new-empty { padding: 8px; font-size: 15px; }
-  .global-new-row span { display: block; margin-top: 2px; font-size: 12px; }
+  .global-new-empty { padding: 8px; font-size: 14px; }
+  .global-new-row { white-space: nowrap; }
+  .global-new-row span { font-size: 11px; }
 
   .participant-section + .participant-section {
     border-top: 1px solid var(--line);

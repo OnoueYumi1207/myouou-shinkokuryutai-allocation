@@ -693,7 +693,7 @@ function renderGlobalNewList() {
       if (row.active && row.isNew) byType[row.type].push({ name: row.name, hallName });
     });
   });
-  const section = (type, label) => `<section class="global-new-section ${type}"><div class="global-new-title ${type}"><span>${label}</span><span>${byType[type].length}名</span></div>${byType[type].length ? byType[type].map(({ name, hallName }) => `<div class="global-new-row">${escapeHtml(name)} <span>（${escapeHtml(hallName)}）</span></div>`).join("") : '<div class="global-new-empty">新規なし</div>'}</section>`;
+  const section = (type, label) => `<section class="global-new-section ${type}"><div class="global-new-title ${type}"><span>${label}</span><span>${byType[type].length}名</span></div>${byType[type].length ? byType[type].map(({ name, hallName }) => `<div class="global-new-row">${escapeHtml(name)}<span>（${escapeHtml(hallName)}）</span></div>`).join("") : '<div class="global-new-empty">新規なし</div>'}</section>`;
   container.hidden = false;
   container.innerHTML = `${section("ritsumei", "立命行")}${section("kuyo", "供養会")}`;
 }
