@@ -224,7 +224,7 @@ function setup() {
   });
 
   document.querySelector("#printButton").addEventListener("click", printCurrentView);
-  document.querySelector("#pdfButton").addEventListener("click", printCurrentView);
+  document.querySelector("#pdfButton").addEventListener("click", downloadListPdf);
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-detail"));
   document.querySelector("#advancedImportButton").addEventListener("click", importFromAdvanced);
   document.querySelector("#saveNamesButton").addEventListener("click", saveDialogNames);
@@ -244,6 +244,67 @@ function setListMode(mode) {
 function printCurrentView() {
   document.body.classList.toggle("printing-detail", Boolean(openHallId));
   requestAnimationFrame(() => window.print());
+}
+
+async function downloadListPdf() {
+  if (!inlineListHallId) {
+    window.alert("一覧を表示してからPDF保存を押してください。");
+    return;
+  }
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    window.alert("PDF作成の準備ができませんでした。もう一度お試しください。");
+    return;
+  }
+
+  const card = document.querySelector(`.hall-card[data-hall-id="${inlineListHallId}"]`);
+  const table = card?.querySelector(".participant-list");
+  if (!table) return;
+
+  const hallName = HALLS.find(([id]) => id === inlineListHallId)[1];
+  const period = listMode === "single" ? ceremony().name : "第14回泉珠収天護摩供から最新まで";
+  const button = document.querySelector("#pdfButton");
+  const source = document.createElement("section");
+  source.className = "pdf-export-source";
+  source.innerHTML = `<h1>${escapeHtml(hallName)}</h1><p>${escapeHtml(period)}</p>`;
+  source.appendChild(table.cloneNode(true));
+  document.body.appendChild(source);
+
+  button.disabled = true;
+  button.textContent = "PDF作成中...";
+  try {
+    const canvas = await window.html2canvas(source, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      windowWidth: source.scrollWidth,
+      windowHeight: source.scrollHeight,
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a3", compress: true });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const contentWidth = pageWidth - margin * 2;
+    const contentHeight = pageHeight - margin * 2;
+    const sliceHeight = Math.floor(canvas.width * contentHeight / contentWidth);
+
+    for (let top = 0, page = 0; top < canvas.height; top += sliceHeight, page += 1) {
+      const height = Math.min(sliceHeight, canvas.height - top);
+      const slice = document.createElement("canvas");
+      slice.width = canvas.width;
+      slice.height = height;
+      slice.getContext("2d").drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
+      if (page) pdf.addPage("a3", "landscape");
+      pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, contentWidth, height * contentWidth / canvas.width);
+    }
+    pdf.save(`allocation-${inlineListHallId}-${ceremony().id}.pdf`);
+  } catch (error) {
+    window.alert("PDFを作成できませんでした。もう一度お試しください。");
+  } finally {
+    source.remove();
+    button.disabled = false;
+    button.textContent = "PDF保存";
+  }
 }
 
 async function importFromAdvanced() {
