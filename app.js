@@ -150,7 +150,8 @@ function normalizeLines(text) {
 }
 
 function correctParticipantName(name) {
-  return name.replace(/[ 　]/g, "") === "石破福子" ? "石橋福子" : name;
+  const compactName = name.replace(/[ 　]/g, "");
+  return compactName === "石破福子" || compactName === "石橋福子" ? "石橋福子" : name;
 }
 
 function correctSavedNames(savedState) {
