@@ -241,8 +241,8 @@ textarea {
 
 .participant-list th,
 .participant-list td {
-  min-width: 132px;
-  padding: 10px 8px;
+  min-width: 72px;
+  padding: 8px 5px;
   border-top: 1px solid #e7e2ea;
   border-right: 1px solid #e7e2ea;
   text-align: center;
@@ -263,7 +263,7 @@ textarea {
   position: sticky;
   left: 0;
   z-index: 1;
-  min-width: 180px;
+  min-width: 112px;
   text-align: left;
   background: #fffdfd;
   font-size: 18px;
@@ -272,17 +272,17 @@ textarea {
 .ceremony-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 116px;
+  justify-content: flex-start;
+  gap: 5px;
+  min-width: 0;
   white-space: nowrap;
 }
 
 .ceremony-count {
   display: grid;
   gap: 2px;
-  min-width: 24px;
-  padding-left: 8px;
+  min-width: 18px;
+  padding-left: 4px;
   border-left: 1px solid #d7cfdd;
   color: #7d7895;
   font-size: 12px;

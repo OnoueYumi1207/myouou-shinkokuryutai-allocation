@@ -398,7 +398,7 @@ function renderInlineList(card, hallId) {
   `;
   content.querySelector(".list-single").addEventListener("click", () => setListMode("single"));
   content.querySelector(".list-history").addEventListener("click", () => setListMode("history"));
-  card.querySelector(".open-list").textContent = "名簿";
+  card.querySelector(".open-list").textContent = "一覧";
 }
 
 function hideInlineList(card) {
