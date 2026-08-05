@@ -110,14 +110,13 @@ function historyMark(ceremonyId, hallId, name, pastIds) {
   return knownBefore && !appearedBefore ? "新" : "✓";
 }
 
-function renderHistory(hallId, hallName, latestCeremonyId) {
-  const latestIndex = CEREMONIES.findIndex(([id]) => id === latestCeremonyId);
-  const ceremonyIds = CEREMONIES.slice(0, latestIndex + 1).filter(([id]) => id !== "chinkon");
+function renderHistory(hallId, hallName) {
+  const ceremonyIds = CEREMONIES;
   const names = historyNames(hallId, ceremonyIds.map(([id]) => id));
   if (!names.length) return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)} 履歴一覧</h2><p>履歴データがありません。</p></div></article>`;
   const rowsPerPage = 36;
   const pageCount = Math.ceil(names.length / rowsPerPage);
-  const latestName = ceremonyData(latestCeremonyId).name;
+  const latestName = CEREMONIES[CEREMONIES.length - 1][1];
   return Array.from({ length: pageCount }, (_, pageIndex) => {
     const pageNames = names.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
     return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)} 履歴一覧</h2><p>第14回泉珠収天護摩供から${escapeHtml(latestName)}まで ${pageCount > 1 ? `${pageIndex + 1}/${pageCount}` : ""}</p></div><table class="history-table"><thead><tr><th>順</th><th>氏名</th>${ceremonyIds.map(([, , label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead><tbody>${pageNames.map((name) => { const index = names.indexOf(name); return `<tr><td>${index + 1}</td><td>${escapeHtml(name)}</td>${ceremonyIds.map(([id]) => { const pastIds = ceremonyIds.slice(0, ceremonyIds.findIndex(([key]) => key === id)).map(([key]) => key); const mark = historyMark(id, hallId, name, pastIds); return `<td class="${mark === "新" ? "history-cell-new" : ""}">${mark}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table></article>`;
@@ -130,7 +129,7 @@ function render() {
   const hallName = HALLS.find(([id]) => id === hallId)?.[1] || "";
   const ceremonyId = ceremonySelect.value;
   document.querySelectorAll(".view-button").forEach((button) => button.classList.toggle("is-active", button.dataset.view === selectedView));
-  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName, ceremonyId) : renderCurrent(hallId, hallName, ceremonyId);
+  content.innerHTML = selectedView === "history" ? renderHistory(hallId, hallName) : renderCurrent(hallId, hallName, ceremonyId);
   const query = new URLSearchParams({ hall: hallId, ceremony: ceremonyId, view: selectedView });
   history.replaceState(null, "", `./print.html?${query}`);
 }
