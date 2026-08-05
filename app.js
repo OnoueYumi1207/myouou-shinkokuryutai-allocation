@@ -725,6 +725,11 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
   node.querySelector(".open-new").addEventListener("click", () => {
+    if (!detail.hidden && detailFilters[hallId] === "new" && inlineListHallId !== hallId) {
+      detailFilters[hallId] = "all";
+      collapseHallCard(node);
+      return;
+    }
     node.querySelector(".inline-list").hidden = true;
     inlineListHallId = null;
     detail.hidden = false;
