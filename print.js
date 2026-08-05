@@ -69,15 +69,21 @@ function renderCurrent(hallId, hallName) {
   const hall = hallData(ceremonyId, hallId);
   const rows = currentRows(hallId);
   const start = allocationForHall(hallId);
-  const section = (type, title) => {
-    const typeRows = rows.filter((row) => row.type === type);
-    return `<section class="current-section"><h3>${title}<span>${typeRows.length}名</span></h3><table class="current-table"><thead><tr><th>順</th><th>氏名</th><th>番号</th></tr></thead><tbody>${typeRows.map((row, index) => {
+  const ritsumeiRows = rows.filter((row) => row.type === "ritsumei");
+  const kuyoRows = rows.filter((row) => row.type === "kuyo");
+  const rowsPerColumn = 38;
+  const pageCount = Math.max(1, Math.ceil(Math.max(ritsumeiRows.length, kuyoRows.length) / rowsPerColumn));
+  const section = (type, title, typeRows, pageIndex) => {
+    const startIndex = Math.ceil(typeRows.length * pageIndex / pageCount);
+    const endIndex = Math.ceil(typeRows.length * (pageIndex + 1) / pageCount);
+    const pageRows = typeRows.slice(startIndex, endIndex);
+    return `<section class="current-section"><h3>${title}<span>${typeRows.length}名</span></h3><table class="current-table"><thead><tr><th>順</th><th>氏名</th><th>番号</th></tr></thead><tbody>${pageRows.map((row) => {
       const key = `${row.type}:${row.index}:${row.name}`;
       const number = hall.mode === "manual" && hall.manualNumbers?.[key] ? hall.manualNumbers[key] : start + rows.indexOf(row);
-      return `<tr><td>${index + 1}</td><td class="${row.isNew ? "new" : ""}">${escapeHtml(row.name)}${row.isNew ? " 新" : ""}</td><td>${escapeHtml(number)}</td></tr>`;
+      return `<tr><td>${row.index + 1}</td><td class="${row.isNew ? "new" : ""}">${escapeHtml(row.name)}${row.isNew ? " 新" : ""}</td><td>${escapeHtml(number)}</td></tr>`;
     }).join("") || "<tr><td colspan=\"3\">該当者なし</td></tr>"}</tbody></table></section>`;
   };
-  return `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)}</h2><p>${escapeHtml(current.name)}${current.date ? ` (${current.date})` : ""}</p></div><div class="current-columns">${section("ritsumei", "立命行")}${section("kuyo", "供養会")}</div></article>`;
+  return Array.from({ length: pageCount }, (_, pageIndex) => `<article class="print-sheet"><div class="sheet-heading"><h2>${escapeHtml(hallName)}</h2><p>${escapeHtml(current.name)}${current.date ? ` (${current.date})` : ""}${pageCount > 1 ? ` ${pageIndex + 1}/${pageCount}` : ""}</p></div><div class="current-columns">${section("ritsumei", "立命行", ritsumeiRows, pageIndex)}${section("kuyo", "供養会", kuyoRows, pageIndex)}</div></article>`).join("");
 }
 
 function historyNames(hallId) {
