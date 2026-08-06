@@ -266,6 +266,7 @@ function setup() {
   CEREMONIES.forEach(([id, name]) => ceremonySelect.add(new Option(name, id)));
   ceremonySelect.value = state.currentCeremony;
   ceremonySelect.addEventListener("change", () => {
+    globalNewOpen = false;
     state.currentCeremony = ceremonySelect.value;
     saveState();
     render();
