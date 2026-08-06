@@ -529,6 +529,8 @@ function hideInlineList(card) {
 }
 
 function collapseHallCard(card) {
+  const hallId = card.dataset.hallId;
+  if (hallId) detailFilters[hallId] = "all";
   hideInlineList(card);
   card.querySelector(".card-detail").hidden = true;
   card.classList.remove("is-open");
@@ -664,11 +666,14 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     if (inlineListHallId === hallId) renderInlineList(node, hallId);
   }
   node.querySelector(".card-top").addEventListener("click", () => {
-    detail.hidden = !detail.hidden;
-    openHallId = detail.hidden ? null : hallId;
-    if (detail.hidden && inlineListHallId === hallId) inlineListHallId = null;
-    node.classList.toggle("is-open", !detail.hidden);
-    if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
+    if (!detail.hidden) {
+      collapseHallCard(node);
+      return;
+    }
+    detail.hidden = false;
+    openHallId = hallId;
+    node.classList.add("is-open");
+    renderPeople(node, hallId, ranges, "all");
     updatePrintPageLink();
   });
   [".edit-names", ".auto-number", ".manual-number"].forEach((selector) => {
