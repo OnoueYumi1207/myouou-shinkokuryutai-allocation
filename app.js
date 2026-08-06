@@ -308,6 +308,13 @@ function printCurrentView() {
   requestAnimationFrame(() => window.print());
 }
 
+function updatePrintPageLink() {
+  const link = document.querySelector("#printPageLink");
+  if (!link) return;
+  const hallId = openHallId || "oedo";
+  link.href = `./print.html?${new URLSearchParams({ hall: hallId, ceremony: state.currentCeremony })}`;
+}
+
 async function downloadListPdf(event) {
   if (!inlineListHallId) {
     window.alert("一覧を表示してからPDF保存を押してください。");
@@ -585,7 +592,6 @@ function renderInlineList(card, hallId) {
   content.hidden = false;
   content.innerHTML = `
     <div class="list-toolbar">
-      <span class="list-label">履歴</span>
       <button class="button primary download-list-pdf" type="button">PDF保存</button>
       <button class="button secondary close-list" type="button">閉じる</button>
     </div>
@@ -610,13 +616,13 @@ function renderInlineList(card, hallId) {
       closeFromHeading();
     }
   });
-  card.querySelector(".open-list").textContent = "一覧";
+  card.querySelector(".open-list").textContent = "履歴一覧";
 }
 
 function hideInlineList(card) {
   card.querySelector(".inline-list").hidden = true;
   card.querySelector(".people").hidden = false;
-  card.querySelector(".open-list").textContent = "一覧";
+  card.querySelector(".open-list").textContent = "履歴一覧";
   inlineListHallId = null;
 }
 
@@ -625,6 +631,7 @@ function collapseHallCard(card) {
   card.querySelector(".card-detail").hidden = true;
   card.classList.remove("is-open");
   openHallId = null;
+  updatePrintPageLink();
 }
 
 function ceremonyHeader(item) {
@@ -696,6 +703,7 @@ function render() {
   HALLS.forEach(([hallId, hallName, managerName]) => {
     cards.appendChild(renderHallCard(hallId, hallName, managerName, ranges));
   });
+  updatePrintPageLink();
 }
 
 function renderGlobalNewList() {
@@ -759,6 +767,7 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     if (detail.hidden && inlineListHallId === hallId) inlineListHallId = null;
     node.classList.toggle("is-open", !detail.hidden);
     if (!detail.hidden) renderPeople(node, hallId, ranges, detailFilters[hallId] || "all");
+    updatePrintPageLink();
   });
   [".edit-names", ".auto-number", ".manual-number"].forEach((selector) => {
     node.querySelector(selector).disabled = isLocked;
