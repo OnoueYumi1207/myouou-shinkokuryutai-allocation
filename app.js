@@ -709,8 +709,9 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     saveState();
     renderPeople(node, hallId, ranges, "all");
   });
-  node.querySelector(".show-undelivered").addEventListener("click", () => renderPeople(node, hallId, ranges, "undelivered"));
-  node.querySelector(".show-all").addEventListener("click", () => renderPeople(node, hallId, ranges, "all"));
+  node.querySelector(".show-undelivered").addEventListener("click", () => {
+    renderPeople(node, hallId, ranges, detailFilters[hallId] === "undelivered" ? "all" : "undelivered");
+  });
   const closeDetail = () => {
     collapseHallCard(node);
   };
