@@ -646,15 +646,13 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
   node.querySelector(".manager-name").textContent = `担当者: ${managerName}`;
   node.querySelector(".range").textContent = range.count ? `${range.start}〜${range.end}` : "—";
   node.querySelector(".card-stats").innerHTML = [
-    ["合計", activeRows.length],
-    ["立命行", ritsumeiCount],
-    ["供養会", kuyoCount],
-    ["新規", newBreakdownMarkup(newRitsumeiCount, newKuyoCount), "stat-new"],
-    ["不参加", inactiveCount],
-  ].map(([label, value, className = ""]) => {
-    const tag = label === "新規" ? "button" : "div";
-    const extra = label === "新規" ? " open-new" : "";
-    return `<${tag} class="stat ${className}${extra}"${tag === "button" ? ' type="button"' : ""}><span>${label}</span><strong>${value}</strong></${tag}>`;
+    ["合計", activeRows.length, "all"],
+    ["立命行", ritsumeiCount, "ritsumei"],
+    ["供養会", kuyoCount, "kuyo"],
+    ["新規", newBreakdownMarkup(newRitsumeiCount, newKuyoCount), "new", "stat-new"],
+    ["不参加", inactiveCount, "inactive"],
+  ].map(([label, value, filter, className = ""]) => {
+    return `<button class="stat ${className} open-filter" data-filter="${filter}" type="button"><span>${label}</span><strong>${value}</strong></button>`;
   }).join("");
 
   const detail = node.querySelector(".card-detail");
@@ -680,9 +678,9 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     node.querySelector(selector).disabled = isLocked;
   });
   node.querySelector(".edit-names").addEventListener("click", () => openEditDialog(hallId));
-  node.querySelector(".open-new").addEventListener("click", () => {
-    if (!detail.hidden && detailFilters[hallId] === "new" && inlineListHallId !== hallId) {
-      detailFilters[hallId] = "all";
+  node.querySelectorAll(".open-filter").forEach((button) => button.addEventListener("click", () => {
+    const filter = button.dataset.filter;
+    if (!detail.hidden && detailFilters[hallId] === filter && inlineListHallId !== hallId) {
       collapseHallCard(node);
       return;
     }
@@ -691,8 +689,8 @@ function renderHallCard(hallId, hallName, managerName, ranges) {
     detail.hidden = false;
     openHallId = hallId;
     node.classList.add("is-open");
-    renderPeople(node, hallId, ranges, "new");
-  });
+    renderPeople(node, hallId, ranges, filter);
+  }));
   node.querySelector(".open-list").addEventListener("click", () => {
     if (inlineListHallId === hallId) {
       collapseHallCard(node);
@@ -737,17 +735,22 @@ function renderPeople(card, hallId, ranges, filter) {
   ["ritsumei", "kuyo"].forEach((type) => {
     const typeRows = rows.filter((row) => row.type === type);
     const activeTypeRows = typeRows.filter((row) => row.active);
-    const newTypeRows = activeTypeRows.filter((row) => row.isNew);
+    const visibleRows = typeRows.filter((row) => {
+      if (filter === "new") return row.active && row.isNew;
+      if (filter === "inactive") return !row.active;
+      if (filter === "undelivered") return row.active && !hall.delivered[row.key];
+      if (filter === "ritsumei" || filter === "kuyo") return row.type === filter && row.active;
+      return true;
+    });
     const section = document.createElement("section");
     section.className = `participant-section ${type}`;
     const title = document.createElement("div");
     title.className = `section-title ${type}`;
-    title.innerHTML = `<span>${type === "ritsumei" ? "立命行" : "供養会"}</span><span>${filter === "new" ? newTypeRows.length : activeTypeRows.length}名</span>`;
+    title.innerHTML = `<span>${type === "ritsumei" ? "立命行" : "供養会"}</span><span>${visibleRows.length}名</span>`;
     section.appendChild(title);
     typeRows.forEach((row, index) => {
       const thisActiveIndex = row.active ? activeIndex++ : null;
-      if (filter === "undelivered" && (!row.active || hall.delivered[row.key])) return;
-      if (filter === "new" && (!row.active || !row.isNew)) return;
+      if (!visibleRows.includes(row)) return;
       if (filter === "new") {
         const newRowNode = document.createElement("div");
         newRowNode.className = `new-person-row ${type}`;

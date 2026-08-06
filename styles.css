@@ -476,7 +476,7 @@ textarea {
 .stat-new .new-breakdown { margin: 0; font-size: 11px; gap: 3px; flex-wrap: nowrap; }
 .stat-new .new-breakdown b { font-size: var(--stat-value-size); }
 
-.stat.open-new {
+.stat.open-filter {
   border: 0;
   width: 100%;
   color: inherit;
@@ -485,7 +485,7 @@ textarea {
   text-align: left;
 }
 
-.stat.open-new:hover { background: #fff0f6; }
+.stat.open-filter:hover { background: #fff0f6; }
 
 .card-detail {
   border-top: 1px solid var(--line);
