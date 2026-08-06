@@ -315,103 +315,6 @@ function updatePrintPageLink() {
   link.href = `./print.html?${new URLSearchParams({ hall: hallId, ceremony: state.currentCeremony })}`;
 }
 
-async function downloadListPdf(event) {
-  if (!inlineListHallId) {
-    window.alert("一覧を表示してからPDF保存を押してください。");
-    return;
-  }
-  if (!window.html2canvas || !window.jspdf?.jsPDF) {
-    window.alert("PDF作成の準備ができませんでした。もう一度お試しください。");
-    return;
-  }
-
-  const card = document.querySelector(`.hall-card[data-hall-id="${inlineListHallId}"]`);
-  const table = card?.querySelector(".participant-list");
-  if (!table) return;
-
-  const hallName = HALLS.find(([id]) => id === inlineListHallId)[1];
-  const period = "第14回泉珠収天護摩供から最新まで";
-  const button = event.currentTarget;
-  const originalButtonText = button.textContent;
-
-  button.disabled = true;
-  button.textContent = "PDF作成中...";
-  try {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const margin = 8;
-    const contentWidth = pageWidth - margin * 2;
-    const rows = [...table.tBodies[0].rows];
-    const dataColumnCount = table.tHead.rows[0].cells.length - 2;
-    const columnsPerPage = 4;
-    const rowsPerPage = 15;
-    let page = 0;
-
-    for (let columnStart = 0; columnStart < dataColumnCount; columnStart += columnsPerPage) {
-      for (let rowStart = 0; rowStart < rows.length; rowStart += rowsPerPage) {
-        const source = createPdfPageSource(
-          table,
-          hallName,
-          period,
-          columnStart,
-          columnsPerPage,
-          rowStart,
-          rowsPerPage,
-        );
-        document.body.appendChild(source);
-        const canvas = await window.html2canvas(source, {
-          backgroundColor: "#ffffff",
-          scale: 1,
-          useCORS: true,
-          windowWidth: source.scrollWidth,
-          windowHeight: source.scrollHeight,
-          onclone: (clonedDocument) => {
-            const clonedSource = clonedDocument.querySelector(".pdf-export-source");
-            clonedDocument.body.replaceChildren(clonedSource);
-            clonedSource.style.position = "static";
-            clonedSource.style.left = "0";
-          },
-        });
-        source.remove();
-        if (page) pdf.addPage("a4", "portrait");
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, contentWidth, canvas.height * contentWidth / canvas.width);
-        page += 1;
-      }
-    }
-    pdf.save(`allocation-${inlineListHallId}-${ceremony().id}.pdf`);
-  } catch (error) {
-    console.error("PDF export failed", error);
-    window.alert("PDFを作成できませんでした。もう一度お試しください。");
-  } finally {
-    button.disabled = false;
-    button.textContent = originalButtonText;
-  }
-}
-
-function createPdfPageSource(table, hallName, period, columnStart, columnsPerPage, rowStart, rowsPerPage) {
-  const source = document.createElement("section");
-  source.className = "pdf-export-source";
-  source.innerHTML = `<h1>${escapeHtml(hallName)}</h1><p>${escapeHtml(period)}</p>`;
-  const pageTable = document.createElement("table");
-  pageTable.className = "participant-list";
-  const copyRow = (row) => {
-    const copied = document.createElement("tr");
-    [...row.cells].forEach((cell, index) => {
-      if (index >= 2 && (index < columnStart + 2 || index >= columnStart + 2 + columnsPerPage)) return;
-      copied.appendChild(cell.cloneNode(true));
-    });
-    return copied;
-  };
-  const head = document.createElement("thead");
-  [...table.tHead.rows].forEach((row) => head.appendChild(copyRow(row)));
-  const body = document.createElement("tbody");
-  [...table.tBodies[0].rows].slice(rowStart, rowStart + rowsPerPage).forEach((row) => body.appendChild(copyRow(row)));
-  pageTable.append(head, body);
-  source.appendChild(pageTable);
-  return source;
-}
-
 async function importFromAdvanced() {
   const status = document.querySelector("#advancedImportStatus");
   if (ceremony().snapshotAt) {
@@ -592,7 +495,6 @@ function renderInlineList(card, hallId) {
   content.hidden = false;
   content.innerHTML = `
     <div class="list-toolbar">
-      <button class="button primary download-list-pdf" type="button">PDF保存</button>
       <button class="button secondary close-list" type="button">閉じる</button>
     </div>
     <div class="list-heading list-close-area" role="button" tabindex="0" aria-label="名簿に戻る">
@@ -606,7 +508,6 @@ function renderInlineList(card, hallId) {
       </table>
     </div>
   `;
-  content.querySelector(".download-list-pdf").addEventListener("click", downloadListPdf);
   content.querySelector(".close-list").addEventListener("click", () => collapseHallCard(card));
   const closeFromHeading = () => collapseHallCard(card);
   content.querySelector(".list-close-area").addEventListener("click", closeFromHeading);

@@ -299,19 +299,6 @@ textarea {
   background: linear-gradient(90deg, #fff8fd, #f2fbff);
 }
 
-.list-label {
-  display: inline-flex;
-  align-items: center;
-  min-height: 42px;
-  padding: 0 18px;
-  border: 1px solid #cbb6eb;
-  border-radius: 8px;
-  background: #f2e9ff;
-  color: #5f4a88;
-  font-size: 18px;
-  font-weight: 750;
-}
-
 .list-heading {
   display: flex;
   justify-content: space-between;
@@ -325,37 +312,6 @@ textarea {
 .list-close-area { cursor: pointer; }
 .list-close-area:focus-visible { outline: 3px solid #c5a9ee; outline-offset: -3px; }
 .list-scroll { overflow: auto; max-height: calc(100vh - 250px); }
-
-.pdf-export-source {
-  position: fixed;
-  top: 0;
-  left: -100000px;
-  width: max-content;
-  padding: 18px;
-  background: #ffffff;
-  color: #283044;
-}
-
-.pdf-export-source h1 {
-  margin: 0;
-  font-size: 28px;
-}
-
-.pdf-export-source p {
-  margin: 4px 0 12px;
-  color: #6f6c80;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.pdf-export-source .participant-list,
-.pdf-export-source .participant-list th,
-.pdf-export-source .participant-list td {
-  position: static !important;
-}
-
-.pdf-export-source .list-cell.ritsumei { background: #d9f0ec !important; }
-.pdf-export-source .list-cell.kuyo { background: #eee6fa !important; }
 
 .participant-list {
   width: max-content;
