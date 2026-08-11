@@ -123,6 +123,7 @@ function normalizeState(parsed) {
   CEREMONIES.forEach(([id, name, date]) => {
     if (!parsed.ceremonies[id]) parsed.ceremonies[id] = makeCeremony(id, name, date);
     parsed.ceremonies[id].name = name;
+    parsed.ceremonies[id].deadlineManual = Boolean(parsed.ceremonies[id].deadlineManual);
   });
   correctSavedNames(parsed);
   if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
@@ -137,6 +138,7 @@ function makeCeremony(id, name, date) {
     name,
     date,
     deadline: internalDeadline(date),
+    deadlineManual: false,
     snapshotAt: "",
     halls: makeInitialHalls(id),
   };
@@ -203,6 +205,13 @@ function internalDeadline(date) {
   const d = new Date(`${date}T12:00:00`);
   d.setDate(d.getDate() - 3);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}T12:00`;
+}
+
+function seimeiDeadline(advancedDeadline) {
+  const date = new Date(`${advancedDeadline}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setDate(date.getDate() - 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T12:00`;
 }
 
 function normalizeLines(text) {
@@ -274,6 +283,7 @@ function setup() {
 
   document.querySelector("#deadlineInput").addEventListener("change", (event) => {
     ceremony().deadline = event.target.value;
+    ceremony().deadlineManual = true;
     saveState();
     render();
   });
@@ -337,7 +347,7 @@ async function importFromAdvanced() {
 
     const current = ceremony();
     if (data.ceremony?.date) current.date = data.ceremony.date;
-    if (data.ceremony?.deadline) current.deadline = `${data.ceremony.deadline}T12:00`;
+    if (data.ceremony?.deadline && !current.deadlineManual) current.deadline = seimeiDeadline(data.ceremony.deadline);
     HALLS.forEach(([hallId]) => {
       const imported = data.halls?.[hallId];
       if (!imported) return;
@@ -371,7 +381,7 @@ async function importHistoryFromAdvanced() {
       const current = state.ceremonies[imported.key];
       if (!current) return;
       current.date = imported.date;
-      current.deadline = `${imported.deadline}T12:00`;
+      if (imported.deadline && !current.deadlineManual) current.deadline = seimeiDeadline(imported.deadline);
       HALLS.forEach(([hallId]) => {
         const hall = imported.halls?.[hallId];
         if (!hall) return;
