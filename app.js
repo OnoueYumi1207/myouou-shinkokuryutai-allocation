@@ -93,7 +93,7 @@ const PARTICIPANT_NAME_CORRECTIONS = {
   新間紗織: "新間紗織", 新間沙織: "新間紗織",
   高栁麻理子: "高栁麻理子", 高柳麻理子: "高栁麻理子", 髙栁麻理子: "高栁麻理子", 田中良実: "田中良実", 田中良美: "田中良実",
   上原悟: "上原　悟", 佐野円: "佐野　円", 渡邊欣: "渡邊　欣", 栁澤みどり: "栁澤みどり", 柳澤みどり: "栁澤みどり", 鈴木眞喜: "鈴木眞喜", 鈴木真喜: "鈴木眞喜", 高橋範男: "高橋範男", 高橋篤男: "高橋範男", 齊藤知子: "齊藤知子", 齊藤和子: "齊藤知子", 仲野頼紗: "仲野頼紗", 仲野頼妙: "仲野頼紗",
-  柏木マリヱ: "柏木マリヱ", 柏木マリエ: "柏木マリヱ", "岡﨑千帆": "岡崎千帆", 岡崎千帆: "岡崎千帆",
+  柏木マリヱ: "柏木マリヱ", 柏木マリエ: "柏木マリヱ", "岡﨑千帆": "岡崎千帆", 岡崎千帆: "岡崎千帆", 矢代海斗34: "矢代海斗",
 };
 const state = loadState();
 let currentHall = null;
@@ -219,7 +219,7 @@ function normalizeLines(text) {
 }
 
 function correctParticipantName(name) {
-  const compactName = name.replace(/[ 　]/g, "");
+  const compactName = name.replace(/[\s　]/g, "");
   return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
 }
 
