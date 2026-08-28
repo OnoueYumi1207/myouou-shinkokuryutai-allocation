@@ -22,6 +22,9 @@ const content = document.querySelector("#printContent");
 const status = document.querySelector("#loadStatus");
 let sharedState = null;
 let selectedView = new URLSearchParams(location.search).get("view") === "history" ? "history" : "current";
+const PARTICIPANT_NAME_ALIASES = {
+  西野玲那: "沖津(西野)玲那", 西野玲奈: "沖津(西野)玲那", "沖津(西野)玲那": "沖津(西野)玲那", "沖津（西野）玲那": "沖津(西野)玲那", "沖津(西野)玲奈": "沖津(西野)玲那", "沖津（西野）玲奈": "沖津(西野)玲那", 沖津玲那: "沖津(西野)玲那", 沖津玲奈: "沖津(西野)玲那",
+};
 
 HALLS.forEach(([id, name]) => hallSelect.add(new Option(name, id)));
 hallSelect.value = new URLSearchParams(location.search).get("hall") || "oedo";
@@ -29,6 +32,16 @@ CEREMONIES.forEach(([id, name]) => ceremonySelect.add(new Option(name, id)));
 
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
+}
+
+function participantKey(name) {
+  const compact = String(name || "").replace(/[\s　]/g, "");
+  return PARTICIPANT_NAME_ALIASES[compact] || compact;
+}
+
+function hasParticipant(names, name) {
+  const key = participantKey(name);
+  return names.some((candidate) => participantKey(candidate) === key);
 }
 
 function ceremonyData(id) {
@@ -48,9 +61,9 @@ function currentRows(hallId, ceremonyId = currentCeremonyId()) {
   const currentIndex = CEREMONIES.findIndex(([id]) => id === ceremonyId);
   const past = CEREMONIES.slice(0, currentIndex).map(([id]) => hallData(id, hallId));
   const hasPast = past.some((hall) => hall.updatedAt);
-  const seenBefore = new Set(past.filter((hall) => hall.updatedAt).flatMap((hall) => [...hall.ritsumei, ...hall.kuyo]));
+  const seenBefore = new Set(past.filter((hall) => hall.updatedAt).flatMap((hall) => [...hall.ritsumei, ...hall.kuyo]).map(participantKey));
   return ["ritsumei", "kuyo"].flatMap((type) => current[type].map((name, index) => ({
-    type, name, index, isNew: hasPast && !seenBefore.has(name),
+    type, name, index, isNew: hasPast && !seenBefore.has(participantKey(name)),
   })));
 }
 
@@ -92,7 +105,8 @@ function historyNames(hallId, ceremonyIds) {
   ceremonyIds.forEach((id) => {
     const hall = hallData(id, hallId);
     [...hall.ritsumei, ...hall.kuyo].forEach((name) => {
-      if (!seen.has(name)) { seen.add(name); names.push(name); }
+      const key = participantKey(name);
+      if (!seen.has(key)) { seen.add(key); names.push(name); }
     });
   });
   return names;
@@ -101,11 +115,11 @@ function historyNames(hallId, ceremonyIds) {
 function historyMark(ceremonyId, hallId, name, pastIds) {
   const hall = hallData(ceremonyId, hallId);
   if (!hall.updatedAt) return "-";
-  if (!hall.ritsumei.includes(name) && !hall.kuyo.includes(name)) return "-";
+  if (!hasParticipant(hall.ritsumei, name) && !hasParticipant(hall.kuyo, name)) return "-";
   const knownBefore = pastIds.some((id) => hallData(id, hallId).updatedAt);
   const appearedBefore = pastIds.some((id) => {
     const past = hallData(id, hallId);
-    return past.updatedAt && (past.ritsumei.includes(name) || past.kuyo.includes(name));
+    return past.updatedAt && (hasParticipant(past.ritsumei, name) || hasParticipant(past.kuyo, name));
   });
   return knownBefore && !appearedBefore ? "新" : "✓";
 }

@@ -224,6 +224,15 @@ function correctParticipantName(name) {
   return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
 }
 
+function participantKey(name) {
+  return correctParticipantName(String(name || ""));
+}
+
+function hasParticipant(names, name) {
+  const key = participantKey(name);
+  return names.some((candidate) => participantKey(candidate) === key);
+}
+
 function correctSavedNames(savedState) {
   Object.values(savedState.ceremonies).forEach((ceremonyData) => {
     Object.values(ceremonyData.halls).forEach((hall) => {
@@ -414,25 +423,25 @@ function rowsForHall(hallId) {
 }
 
 function addRows(rows, type, currentNames, previousNames, pastCeremonies, hallId) {
-  const currentSet = new Set(currentNames);
-  const previousSet = new Set(previousNames);
+  const currentSet = new Set(currentNames.map(participantKey));
+  const previousSet = new Set(previousNames.map(participantKey));
   const hasPastData = pastCeremonies.some((item) => item.halls[hallId]?.updatedAt);
   const pastNames = new Set(pastCeremonies.flatMap((item) => {
     const hall = item.halls[hallId];
     return hall?.updatedAt ? [...hall.ritsumei, ...hall.kuyo] : [];
-  }));
+  }).map(participantKey));
   const merged = [];
   previousNames.forEach((name) => merged.push(name));
   currentNames.forEach((name) => {
-    if (!previousSet.has(name)) merged.push(name);
+    if (!previousSet.has(participantKey(name))) merged.push(name);
   });
   merged.forEach((name, index) => {
     rows.push({
       type,
       name,
       key: `${type}:${index}:${name}`,
-      active: currentSet.has(name),
-      isNew: currentSet.has(name) && hasPastData && !pastNames.has(name),
+      active: currentSet.has(participantKey(name)),
+      isNew: currentSet.has(participantKey(name)) && hasPastData && !pastNames.has(participantKey(name)),
     });
   });
 }
@@ -483,12 +492,14 @@ function listRows(hallId, ceremonyIds) {
   const seen = new Set();
   const preferred = ceremony().halls[hallId];
   [preferred.ritsumei, preferred.kuyo].flat().forEach((name) => {
-    if (!seen.has(name)) { seen.add(name); names.push(name); }
+    const key = participantKey(name);
+    if (!seen.has(key)) { seen.add(key); names.push(name); }
   });
   ceremonyIds.forEach((id) => {
     const hall = state.ceremonies[id].halls[hallId];
     [hall.ritsumei, hall.kuyo].flat().forEach((name) => {
-      if (!seen.has(name)) { seen.add(name); names.push(name); }
+      const key = participantKey(name);
+      if (!seen.has(key)) { seen.add(key); names.push(name); }
     });
   });
   return names;
@@ -560,12 +571,12 @@ function ceremonyHeader(item) {
 function listCell(item, name, pastItems) {
   const hall = item.halls[listHallId];
   if (!hall.updatedAt) return '<td class="list-cell unavailable">—</td>';
-  const type = hall.ritsumei.includes(name) ? "ritsumei" : hall.kuyo.includes(name) ? "kuyo" : "";
+  const type = hasParticipant(hall.ritsumei, name) ? "ritsumei" : hasParticipant(hall.kuyo, name) ? "kuyo" : "";
   if (!type) return '<td class="list-cell absent"><strong>−</strong></td>';
   const knownBefore = pastItems.some((pastItem) => pastItem.halls[listHallId]?.updatedAt);
   const appearedBefore = pastItems.some((pastItem) => {
     const pastHall = pastItem.halls[listHallId];
-    return pastHall?.updatedAt && (pastHall.ritsumei.includes(name) || pastHall.kuyo.includes(name));
+    return pastHall?.updatedAt && (hasParticipant(pastHall.ritsumei, name) || hasParticipant(pastHall.kuyo, name));
   });
   const isNew = knownBefore && !appearedBefore;
   return `<td class="list-cell ${type}${isNew ? " new" : ""}"><strong>${isNew ? "新" : "✓"}</strong></td>`;
