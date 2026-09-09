@@ -23,6 +23,7 @@ const status = document.querySelector("#loadStatus");
 let sharedState = null;
 let selectedView = new URLSearchParams(location.search).get("view") === "history" ? "history" : "current";
 const PARTICIPANT_NAME_ALIASES = {
+  八代初枝: "矢代初枝", 八代吉榮: "矢代吉榮",
   西野玲那: "沖津(西野)玲那", 西野玲奈: "沖津(西野)玲那", "沖津(西野)玲那": "沖津(西野)玲那", "沖津（西野）玲那": "沖津(西野)玲那", "沖津(西野)玲奈": "沖津(西野)玲那", "沖津（西野）玲奈": "沖津(西野)玲那", 沖津玲那: "沖津(西野)玲那", 沖津玲奈: "沖津(西野)玲那",
 };
 
