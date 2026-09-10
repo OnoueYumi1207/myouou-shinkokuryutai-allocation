@@ -96,6 +96,9 @@ const PARTICIPANT_NAME_CORRECTIONS = {
   柏木マリヱ: "柏木マリヱ", 柏木マリエ: "柏木マリヱ", "岡﨑千帆": "岡崎千帆", 岡崎千帆: "岡崎千帆", 八代初枝: "矢代初枝", 八代吉榮: "矢代吉榮", 矢代海斗34: "矢代海斗", 三上結奈: "三上結菜",
   西野玲那: "沖津(西野)玲那", 西野玲奈: "沖津(西野)玲那", "沖津(西野)玲那": "沖津(西野)玲那", "沖津（西野）玲那": "沖津(西野)玲那", "沖津(西野)玲奈": "沖津(西野)玲那", "沖津（西野）玲奈": "沖津(西野)玲那", 沖津玲那: "沖津(西野)玲那", 沖津玲奈: "沖津(西野)玲那",
 };
+const PARTICIPATION_EXCLUSIONS = {
+  hokuto: { haneda: { kuyo: ["高橋三二"] } },
+};
 const state = loadState();
 let currentHall = null;
 let openHallId = null;
@@ -126,6 +129,7 @@ function normalizeState(parsed) {
     parsed.ceremonies[id].name = name;
     parsed.ceremonies[id].deadlineManual = Boolean(parsed.ceremonies[id].deadlineManual);
   });
+  applyParticipationExclusions(parsed);
   correctSavedNames(parsed);
   if (!CEREMONIES.some(([id]) => id === parsed.currentCeremony)) parsed.currentCeremony = "segaki";
   parsed.currentYear ||= "2026";
@@ -222,6 +226,29 @@ function normalizeLines(text) {
 function correctParticipantName(name) {
   const compactName = name.replace(/[\s　]/g, "");
   return (PARTICIPANT_NAME_CORRECTIONS[compactName] || compactName).replace(/[ 　]/g, "");
+}
+
+function excludedParticipantKeys(ceremonyId, hallId, type) {
+  return new Set((PARTICIPATION_EXCLUSIONS[ceremonyId]?.[hallId]?.[type] || []).map(participantKey));
+}
+
+function withoutExcludedParticipants(names, ceremonyId, hallId, type) {
+  const excluded = excludedParticipantKeys(ceremonyId, hallId, type);
+  return names.filter((name) => !excluded.has(participantKey(name)));
+}
+
+function applyParticipationExclusions(savedState) {
+  Object.entries(PARTICIPATION_EXCLUSIONS).forEach(([ceremonyId, halls]) => {
+    const ceremonyData = savedState.ceremonies?.[ceremonyId];
+    if (!ceremonyData) return;
+    Object.entries(halls).forEach(([hallId, types]) => {
+      const hall = ceremonyData.halls?.[hallId];
+      if (!hall) return;
+      Object.entries(types).forEach(([type]) => {
+        hall[type] = withoutExcludedParticipants(hall[type] || [], ceremonyId, hallId, type);
+      });
+    });
+  });
 }
 
 function participantKey(name) {
@@ -361,8 +388,8 @@ async function importFromAdvanced() {
     HALLS.forEach(([hallId]) => {
       const imported = data.halls?.[hallId];
       if (!imported) return;
-      current.halls[hallId].ritsumei = imported.ritsumei || [];
-      current.halls[hallId].kuyo = imported.kuyo || [];
+      current.halls[hallId].ritsumei = withoutExcludedParticipants(imported.ritsumei || [], state.currentCeremony, hallId, "ritsumei");
+      current.halls[hallId].kuyo = withoutExcludedParticipants(imported.kuyo || [], state.currentCeremony, hallId, "kuyo");
       current.halls[hallId].updatedAt = data.fetchedAt || new Date().toISOString();
     });
     saveState();
