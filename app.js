@@ -450,16 +450,18 @@ function rowsForHall(hallId) {
 }
 
 function addRows(rows, type, currentNames, previousNames, pastCeremonies, hallId) {
-  const currentSet = new Set(currentNames.map(participantKey));
-  const previousSet = new Set(previousNames.map(participantKey));
+  const visibleCurrentNames = withoutExcludedParticipants(currentNames, state.currentCeremony, hallId, type);
+  const visiblePreviousNames = withoutExcludedParticipants(previousNames, state.currentCeremony, hallId, type);
+  const currentSet = new Set(visibleCurrentNames.map(participantKey));
+  const previousSet = new Set(visiblePreviousNames.map(participantKey));
   const hasPastData = pastCeremonies.some((item) => item.halls[hallId]?.updatedAt);
   const pastNames = new Set(pastCeremonies.flatMap((item) => {
     const hall = item.halls[hallId];
     return hall?.updatedAt ? [...hall.ritsumei, ...hall.kuyo] : [];
   }).map(participantKey));
   const merged = [];
-  previousNames.forEach((name) => merged.push(name));
-  currentNames.forEach((name) => {
+  visiblePreviousNames.forEach((name) => merged.push(name));
+  visibleCurrentNames.forEach((name) => {
     if (!previousSet.has(participantKey(name))) merged.push(name);
   });
   merged.forEach((name, index) => {
